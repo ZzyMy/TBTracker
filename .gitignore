@@ -87,3 +87,18 @@ ENV/
 
 # Rope project settings
 .ropeproject
+
+# PhantomJS log
+ghostdriver.log
+
+# Pycache
+__pycache__/
+
+# System logs
+TBTracker_Log/
+
+# System DB
+TBTracker_DB/
+
+# System Temp
+TBTracker_Temp/

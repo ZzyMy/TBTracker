@@ -1,2 +1,17 @@
 # TBTracker
-淘宝商品数据跟踪系统
+
+A tracker for commodities in TaoBao.
+
+## First Step
+
+```shell
+$ sudo python3 TBTracker_InitDataBase.py
+```
+
+## Second Step
+
+```shell
+$ sudo python3 TBTracker_Main.py
+```
+
+just enjoy it!!!
