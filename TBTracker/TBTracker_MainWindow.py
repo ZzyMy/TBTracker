@@ -1,16 +1,26 @@
 # -*- coding: utf-8 -*-
 # ********************第三方相关模块导入********************
-import os
-import shutil
-import sys
+import logging
+
+Logger = logging.getLogger("TBTracker")
+Logger.setLevel(logging.DEBUG)
+InfoHandler = logging.FileHandler("TBTracker_Log/info.log")
+InfoHandler.setLevel(logging.INFO)
+INFOFORMATTER = logging.Formatter('[%(asctime)s][%(name)s][%(levelname)s]: %(message)s')
+InfoHandler.setFormatter(INFOFORMATTER)
+Logger.addHandler(InfoHandler)
+ErrHandler = logging.FileHandler("TBTracker_Log/error.log")
+ErrHandler.setLevel(logging.ERROR)
+ERRORFORMATTER = logging.Formatter('[%(asctime)s][%(name)s][%(levelname)s] File "%(filename)s", line %(lineno)d: %(message)s')
+ErrHandler.setFormatter(ERRORFORMATTER)
+Logger.addHandler(ErrHandler)
+
 import math
-import yaml
-import sqlite3 as sqlite
-import json
+import os
 import random
-import re
 import requests
-import time
+import sqlite3 as sqlite
+import sys
 import xlwt
 
 from bs4 import BeautifulSoup
@@ -28,24 +38,18 @@ from PyQt5.QtCore import QVariant
 from PyQt5.QtGui import QFont
 from PyQt5.QtGui import QIcon
 from PyQt5.QtGui import QImage
-from PyQt5.QtGui import QPalette
 from PyQt5.QtGui import QPixmap
 from PyQt5.QtWidgets import qApp
 from PyQt5.QtWidgets import QAbstractItemView
-from PyQt5.QtWidgets import QCheckBox
-from PyQt5.QtWidgets import QFileDialog
 from PyQt5.QtWidgets import QGridLayout
 from PyQt5.QtWidgets import QHBoxLayout
 from PyQt5.QtWidgets import QHeaderView
-from PyQt5.QtWidgets import QInputDialog
 from PyQt5.QtWidgets import QLabel
 from PyQt5.QtWidgets import QLineEdit
-from PyQt5.QtWidgets import QMainWindow
 from PyQt5.QtWidgets import QProgressBar
 from PyQt5.QtWidgets import QTableWidget
 from PyQt5.QtWidgets import QTableWidgetItem
 from PyQt5.QtWidgets import QTabWidget
-from PyQt5.QtWidgets import QTextEdit
 from PyQt5.QtWidgets import QVBoxLayout
 from PyQt5.QtWidgets import QWidget
 # ********************用户自定义相关模块导入********************
@@ -203,19 +207,19 @@ class TBTrackerMainWindow(QWidget):
             event.ignore()
     
     @staticmethod
-    def remove_pics(f):
+    def remove_pics():
         root_dir = 'TBTracker_Temp'
         for root, dirs, files in os.walk(root_dir):
-            print('正在删除图片...', file=f)
+            Logger.info('正在删除图片...')
             for filename in files:
                 os.remove(root+'/'+filename)
-            print('图片删除完毕', file=f)
+            Logger.info('图片删除完毕!')
 
-    def find_out_real_price(self, f, i, shop_url, match_price):
+    def find_out_real_price(self, i, shop_url, match_price):
         title, price, taobao_price = "", "", ""
         try:
             html = requests.get(shop_url, timeout=10, headers=self.headers)
-            print("第{0}家店铺的商品页面读取成功...".format(i), file=f)
+            Logger.info("第{0}家店铺的商品页面读取成功...".format(i))
             soup = BeautifulSoup(html.text, 'lxml')
             try:
                 title = soup.find(name='h3', attrs={'class': 'tb-main-title'})['data-title'].strip()
@@ -239,10 +243,10 @@ class TBTrackerMainWindow(QWidget):
                     if match_price != price:
                         taobao_price = match_price
                 except Exception as e:
-                    print(e, file=f)
+                    Logger.error(e)
         except Exception as e:
-            print(e, file=f)
-            print('第{0}家店铺的商品页面读取失败...'.format(i), file=f)
+            Logger.error(e)
+            Logger.warn('第{0}家店铺的商品页面读取失败...'.format(i))
         finally:
             if taobao_price == "":
                 taobao_price = "无"
@@ -251,16 +255,12 @@ class TBTrackerMainWindow(QWidget):
     def call_spider(self):
         searchWord = self.searchLineEdit.text()
         if searchWord != "":
-            f = open("TBTracker_Log/price_trace.log", 'a')
-            print("******************************", file=f)
-            print("     " + get_current_system_time(), file=f)
-            print("******************************", file=f)
-            self.remove_pics(f)
+            self.remove_pics()
             try:
                 webDriver = webdriver.PhantomJS()
                 webDriver.set_window_size(800, 400)
                 try:
-                    print("模拟登录淘宝网", file=f)
+                    Logger.info("模拟登录淘宝网")
                     webDriver.get("https://www.taobao.com/")
                     try:
                         search_combobox = WebDriverWait(webDriver, 10).until(
@@ -276,7 +276,7 @@ class TBTrackerMainWindow(QWidget):
                             EC.presence_of_element_located((By.CLASS_NAME, 'btn-search')))
                         search_button.click()
                         try:
-                            print('搜索成功，正在返回搜索结果...', file=f)
+                            Logger.info('搜索成功，正在返回搜索结果...')
                             main_srp_item_list = WebDriverWait(webDriver, 10).until(
                                 EC.presence_of_element_located((By.ID, 'mainsrp-itemlist')))
                             m_item_list = WebDriverWait(main_srp_item_list, 10).until(
@@ -287,7 +287,7 @@ class TBTrackerMainWindow(QWidget):
                                 EC.presence_of_all_elements_located((By.CLASS_NAME, 'item'))
                             )
                             self.returnCNT = len(allItems)
-                            print('总共返回{0}个搜索结果'.format(self.returnCNT), file=f)
+                            Logger.info('总共返回{0}个搜索结果'.format(self.returnCNT))
 
                             self.taobaoDataTable.setRowCount(self.returnCNT * 6)
                             imageLabel = [QLabel() for _ in range(self.returnCNT)]
@@ -309,7 +309,7 @@ class TBTrackerMainWindow(QWidget):
                             # 抓取商品图
                             for (j, item) in enumerate(allItems):
                                 try:
-                                    print('正在爬取第{0}家店铺的数据...'.format(j + 1), file=f)
+                                    Logger.info('正在爬取第{0}家店铺的数据...'.format(j + 1))
                                     itemPic = WebDriverWait(item, 10).until(
                                         EC.presence_of_element_located((By.CLASS_NAME, 'J_ItemPic')))
                                     itemPic_id = itemPic.get_attribute('id')
@@ -323,25 +323,25 @@ class TBTrackerMainWindow(QWidget):
                                             random_serial += str(random.randint(0, 10))
                                         itemPic_id = "J_Itemlist_Pic_" + random_serial
 
-                                    print("正在爬取第{0}家店铺的商品图片...".format(j + 1), file=f)
+                                    Logger.info("正在爬取第{0}家店铺的商品图片...".format(j + 1))
                                     try:
                                         stream = requests.get(itemPic_data_src, timeout=10, headers=self.headers)
                                     except requests.RequestException as e:
-                                        print(e, file=f)
+                                        Logger.error(e)
                                     finally:
-                                        print("第{0}家店铺的商品图片爬取完毕...".format(j + 1), file=f)
+                                        Logger.info("第{0}家店铺的商品图片爬取完毕...".format(j + 1))
                                         try:
                                             im = Image.open(BytesIO(stream.content))
                                             if im.mode != 'RGB':
                                                 im = im.convert('RGB')
                                             im.save("TBTracker_Temp/{0}.jpeg".format(itemPic_id))
-                                            print("第{0}家店铺的商品图片保存完毕...".format(j + 1), file=f)
+                                            Logger.info("第{0}家店铺的商品图片保存完毕...".format(j + 1))
                                             self.taobaoDataTable.setSpan(j * 6, 0, 6, 1)
                                             imageLabel[j].setPixmap(QPixmap.fromImage(QImage("TBTracker_Temp/{0}.jpeg".format(itemPic_id)).scaled(int(230 * 0.7), int(230 * 0.7))))
                                             imageLabel[j].setAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
                                             self.taobaoDataTable.setCellWidget(j * 6, 0, imageLabel[j])
                                         except Exception as e:
-                                            print(e, file=f)
+                                            Logger.error(e)
                                     
                                     item_price_and_link = WebDriverWait(item, 10).until(
                                         EC.presence_of_element_located((By.CLASS_NAME, 'J_ClickStat'))
@@ -354,10 +354,10 @@ class TBTrackerMainWindow(QWidget):
                                     self.URLList.append(item_link)
 
                                     status_code = requests.get(item_link).status_code
-                                    print(status_code, file=f)
+                                    Logger.info(status_code)
                                     if status_code == 200:
-                                        item_title, item_price, item_taobao_price = self.find_out_real_price(f, j+1, item_link, item_match_price)
-                                        print('第{0}家店铺的商品价格和链接爬取完毕...'.format(j + 1), file=f)
+                                        item_title, item_price, item_taobao_price = self.find_out_real_price(j+1, item_link, item_match_price)
+                                        Logger.info('第{0}家店铺的商品价格和链接爬取完毕...'.format(j + 1))
                                         self.taobaoDataTable.setSpan(j * 6, 1, 1, 2)
                                         titleItem[j].setData(Qt.DisplayRole, QVariant(item_title))
                                         titleItem[j].setFont(self.table_1_Font)
@@ -376,11 +376,11 @@ class TBTrackerMainWindow(QWidget):
                                         tbPriceValueItem[j].setData(Qt.DisplayRole, QVariant(item_taobao_price))
                                         self.taobaoDataTable.setItem(j * 6 + 4, 2, tbPriceValueItem[j])
                                     else:
-                                        print('第{0}家店铺的商品价格和链接爬取失败...'.format(j + 1), file=f)
+                                        Logger.warn('第{0}家店铺的商品价格和链接爬取失败...'.format(j + 1))
 
                                     item_deal = WebDriverWait(item, 10).until(
                                         EC.presence_of_element_located((By.CLASS_NAME, 'deal-cnt'))).text.strip()
-                                    print('第{0}家店铺的商品交易量爬取完毕...'.format(j + 1), file=f)
+                                    Logger.info('第{0}家店铺的商品交易量爬取完毕...'.format(j + 1))
                                     dealItem[j].setFont(self.table_2_Font)
                                     dealItem[j].setTextAlignment(Qt.AlignRight | Qt.AlignVCenter)
                                     self.taobaoDataTable.setItem(j * 6 + 5, 1, dealItem[j])
@@ -391,7 +391,7 @@ class TBTrackerMainWindow(QWidget):
                                         EC.presence_of_element_located((By.CLASS_NAME, 'row-3')))
                                     item_shop_name = WebDriverWait(row_3, 10).until(
                                         EC.presence_of_all_elements_located((By.TAG_NAME, 'span')))[4].text.strip()
-                                    print('第{0}家店铺的商铺名爬取完毕...'.format(j + 1), file=f)
+                                    Logger.info('第{0}家店铺的商铺名爬取完毕...'.format(j + 1))
                                     shopItem[j].setFont(self.table_2_Font)
                                     shopItem[j].setTextAlignment(Qt.AlignRight | Qt.AlignVCenter)
                                     self.taobaoDataTable.setItem(j * 6 + 1, 1, shopItem[j])
@@ -400,7 +400,7 @@ class TBTrackerMainWindow(QWidget):
 
                                     item_location = WebDriverWait(row_3, 10).until(
                                         EC.presence_of_element_located((By.CLASS_NAME, 'location'))).text.strip()
-                                    print('第{0}家店铺的货源地爬取完毕...'.format(j + 1), file=f)
+                                    Logger.info('第{0}家店铺的货源地爬取完毕...'.format(j + 1))
                                     if item_location == "":
                                         item_location = "抓取为空"
                                     sourceItem[j].setFont(self.table_2_Font)
@@ -418,28 +418,22 @@ class TBTrackerMainWindow(QWidget):
 
                                     self.progressBar.setValue(math.ceil(((j + 1)/self.returnCNT) * 100))                              
                                 except Exception as e:
-                                    print(e, file=f)
-                                break
+                                    Logger.error(e)
                             messageDialog = MessageDialog()
                             messageDialog.information(self, "消息提示对话框", "数据爬取完毕!")
-                            print("数据爬取完毕", file=f)
-                            f.close()
+                            Logger.info("数据爬取完毕")
                             webDriver.close()
                         except NoSuchElementException as e:
                             webDriver.close()
-                            print(e, file=f)
-                            f.close()
+                            Logger.error(e)
                     except NoSuchElementException as e:
                         webDriver.close()
-                        print(e, file=f)
-                        f.close()
+                        Logger.error(e)
                 except TimeoutException as e:
                     webDriver.close()
-                    print(e, file=f)
-                    f.close()
+                    Logger.error(e)
             except WebDriverException as e:
-                print(e, file=f)
-                f.close()
+                Logger.error(e)
         else:
             messageDialog = MessageDialog()
             messageDialog.warning(self, "消息提示对话框", "请先输入搜索词!")
