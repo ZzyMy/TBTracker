@@ -194,7 +194,7 @@ class TBTrackerMainWindow(QWidget):
         self.wordCloudLabel = QLabel()
         self.wordCloudLabel.setAlignment(Qt.AlignCenter)
         self.wordCloudLabel.setFrameStyle(QFrame.Panel | QFrame.Plain)
-        self.wordCloudLabel.setLineWidth(4)
+        self.wordCloudLabel.setLineWidth(2)
         self.wordCloudLabel.setPixmap(QPixmap.fromImage(QImage("TBTracker_Ui/WordCloud.png")))
 
         self.productTree = QTreeWidget()
@@ -204,6 +204,11 @@ class TBTrackerMainWindow(QWidget):
         self.productTree.setSelectionMode(QAbstractItemView.NoSelection)
         productTreeLayout = QHBoxLayout()
         productTreeLayout.addWidget(self.productTree)
+
+        upLayout = QHBoxLayout()
+        upLayout.setSpacing(20)
+        upLayout.addWidget(self.wordCloudLabel)
+        upLayout.addLayout(productTreeLayout)
 
         exportButton = ExportButton()
         exportButton.clicked.connect(self.export_data)
@@ -215,16 +220,11 @@ class TBTrackerMainWindow(QWidget):
         dataExportLayout.addWidget(allSelectButton)
         dataExportLayout.addWidget(exportButton)
 
-        exportLayout = QVBoxLayout()
-        exportLayout.setSpacing(20)
-        exportLayout.addLayout(productTreeLayout)
-        exportLayout.addLayout(dataExportLayout)
-
-        thirdWidgetLayout = QHBoxLayout()
-        thirdWidgetLayout.setSpacing(50)
+        thirdWidgetLayout = QVBoxLayout()
+        thirdWidgetLayout.setSpacing(20)
         thirdWidgetLayout.setContentsMargins(50, 20, 50, 20)
-        thirdWidgetLayout.addWidget(self.wordCloudLabel)
-        thirdWidgetLayout.addLayout(exportLayout)
+        thirdWidgetLayout.addLayout(upLayout)
+        thirdWidgetLayout.addLayout(dataExportLayout)
         
         thirdWidget.setLayout(thirdWidgetLayout)
         # ****************************************
@@ -235,7 +235,7 @@ class TBTrackerMainWindow(QWidget):
         self.tabWidget.addTab(thirdWidget, "数据导出")
 
         self.layout = QVBoxLayout()
-        self.layout.setContentsMargins(50, 20, 50, 20)
+        self.layout.setContentsMargins(50, 20, 50, 13)
         self.layout.addWidget(self.tabWidget)
 
     # 类方法重载 -- 关闭窗口事件
@@ -294,7 +294,7 @@ class TBTrackerMainWindow(QWidget):
             return title, price, taobao_price
 
     def call_spider(self):
-        searchWord = self.searchLineEdit.text()
+        searchWord = self.searchLineEdit.text().strip()
         if searchWord != "":
             self.remove_pics()
             try:
@@ -480,7 +480,7 @@ class TBTrackerMainWindow(QWidget):
             messageDialog.warning(self, "消息提示对话框", "请先输入搜索词!")
         
     def save_product_id(self):
-        productID = self.productIDLineEdit.text()
+        productID = self.productIDLineEdit.text().strip()
         if productID != "":
             conn = sqlite.connect('TBTracker_DB/TBTrackerTag.db')
             c = conn.cursor()
@@ -582,7 +582,7 @@ class TBTrackerMainWindow(QWidget):
 
         wc = WordCloud(
             font_path="TBTracker_Font/wqy-microhei.ttc",
-            width=420, 
+            width=520, 
             height=280,
             margin=10,
             max_words=500,

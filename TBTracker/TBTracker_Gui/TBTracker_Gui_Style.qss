@@ -1,11 +1,21 @@
-
-QWidget {
+QTabWidget {
     background-color: #FFFFFF;
+}
+
+QTabWidget::tab-bar {
+    alignment: center;
+}
+
+QTabBar::tab {
+    width: 100px;
+    padding: 10px 0;
+    font: normal 16px;
 }
 
 QLineEdit {
     background-color: #FFFFFF;
     border: 2px solid #F52B00;
+    border-radius: 5px;
     padding: 5px;
 }
 
@@ -14,11 +24,36 @@ QPushButton {
     color: #FFFFFF;
     border-radius: 5px;
     padding: 5px 10px;
+    font-family: simsun;
+}
+
+QProgressBar {
+    background-color: #EEEEEE;
+    border:2px solid grey;
+    border-radius: 5px;
+    text-align: center;
+}
+
+QProgressBar::chunk {
+    background-color: #CD96CD;
 }
 
 QTableWidget {
     background-color: #FFFFFF;
+    gridline-color: #000000;
     border: 2px solid #F52B00;
+    border-radius: 5px;
+    font: normal 13px;
+}
+
+QHeaderView::section {
+    background-color: #F52B00;
+    color: #FFFFFF;
+}
+
+QScrollBar:vertical {
+    border:2px solid grey;
+    background-color: #32CC99;
 }
 
 QTreeWidget {
@@ -26,7 +61,26 @@ QTreeWidget {
     border: 2px solid #F52B00;
 }
 
-QProgressBar {
-    background-color: #CCCCCC;
+QTreeView::branch:has-siblings:!adjoins-item {
+    border-image: url(./TBTracker_Ui/vline.png);
 }
 
+QTreeView::branch:has-siblings:adjoins-item {
+    border-image: url(./TBTracker_Ui/branch-more.png);
+}
+
+QTreeView::branch:!has-children:!has-siblings:adjoins-item {
+    border-image: url(./TBTracker_Ui/branch-end.png);
+}
+
+QTreeView::branch:has-children:!has-siblings:closed,
+QTreeView::branch:closed:has-children:has-siblings {
+    border-image: none;
+    image: url(./TBTracker_Ui/branch-closed.png);
+}
+
+QTreeView::branch:open:has-children:!has-siblings,
+QTreeView::branch:open:has-children:has-siblings {
+    border-image: none;
+    image: url(./TBTracker_Ui/branch-open.png);
+}
