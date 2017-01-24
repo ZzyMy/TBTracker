@@ -16,6 +16,7 @@ ErrHandler.setFormatter(ERRORFORMATTER)
 Logger.addHandler(ErrHandler)
 
 import math
+import matplotlib.pyplot as plt
 import os
 import random
 import requests
@@ -31,6 +32,7 @@ from selenium.common.exceptions import *
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from wordcloud import WordCloud
 # ********************PyQt5相关模块导入********************
 from PyQt5.QtCore import QEvent
 from PyQt5.QtCore import Qt
@@ -41,6 +43,7 @@ from PyQt5.QtGui import QImage
 from PyQt5.QtGui import QPixmap
 from PyQt5.QtWidgets import qApp
 from PyQt5.QtWidgets import QAbstractItemView
+from PyQt5.QtWidgets import QFrame
 from PyQt5.QtWidgets import QGridLayout
 from PyQt5.QtWidgets import QHBoxLayout
 from PyQt5.QtWidgets import QHeaderView
@@ -50,6 +53,8 @@ from PyQt5.QtWidgets import QProgressBar
 from PyQt5.QtWidgets import QTableWidget
 from PyQt5.QtWidgets import QTableWidgetItem
 from PyQt5.QtWidgets import QTabWidget
+from PyQt5.QtWidgets import QTreeWidget
+from PyQt5.QtWidgets import QTreeWidgetItem
 from PyQt5.QtWidgets import QVBoxLayout
 from PyQt5.QtWidgets import QWidget
 # ********************用户自定义相关模块导入********************
@@ -77,6 +82,10 @@ class TBTrackerMainWindow(QWidget):
         self.setMaximumSize(self.width, self.height)
         self.set_widgets()
         self.setLayout(self.layout)
+
+        self.show_database()
+        self.plot_word_cloud()
+        self.plot_product_tree()
 
     def set_widgets(self):
         q_1_Font = QFont()
@@ -132,18 +141,14 @@ class TBTrackerMainWindow(QWidget):
         updateDataButton = UpdateButton()
         updateDataButton.setFont(q_2_Font)
         updateDataButton.clicked.connect(self.update_data)
-        exportDataButton = ExportButton()
-        exportDataButton.setFont(q_2_Font)
-        exportDataButton.clicked.connect(self.export_data)
 
         dataOperateLayout = QHBoxLayout()
-        dataOperateLayout.setContentsMargins(0, 0, 20, 0)
+        dataOperateLayout.setContentsMargins(500, 0, 0, 0)
         dataOperateLayout.addStretch()
         dataOperateLayout.setSpacing(20)
         dataOperateLayout.addWidget(self.productIDLineEdit)
         dataOperateLayout.addWidget(productIDSaveButton)
         dataOperateLayout.addWidget(updateDataButton)
-        dataOperateLayout.addWidget(exportDataButton)
 
         firstWidgetLayout = QVBoxLayout()
         firstWidgetLayout.setSpacing(10)
@@ -185,7 +190,37 @@ class TBTrackerMainWindow(QWidget):
         # ****************************************
         thirdWidget = QWidget()
         
+        self.wordCloudLabel = QLabel()
+        self.wordCloudLabel.setAlignment(Qt.AlignCenter)
+        self.wordCloudLabel.setFrameStyle(QFrame.Panel | QFrame.Plain)
+        self.wordCloudLabel.setLineWidth(4)
+        self.wordCloudLabel.setPixmap(QPixmap.fromImage(QImage("TBTracker_Ui/WordCloud.png")))
 
+        self.productTree = QTreeWidget()
+        self.productTree.setColumnCount(2)
+        self.productTree.setHeaderLabels(['商品标识','商品数量'])
+        self.productTree.header().setSectionResizeMode(QHeaderView.Stretch)
+        productTreeLayout = QHBoxLayout()
+        productTreeLayout.addWidget(self.productTree)
+
+        exportButton = ExportButton()
+        exportButton.clicked.connect(self.export_data)
+        dataExportLayout = QHBoxLayout()
+        dataExportLayout.addStretch()
+        dataExportLayout.addWidget(exportButton)
+
+        exportLayout = QVBoxLayout()
+        exportLayout.setSpacing(20)
+        exportLayout.addLayout(productTreeLayout)
+        exportLayout.addLayout(dataExportLayout)
+
+        thirdWidgetLayout = QHBoxLayout()
+        thirdWidgetLayout.setSpacing(50)
+        thirdWidgetLayout.setContentsMargins(50, 20, 50, 20)
+        thirdWidgetLayout.addWidget(self.wordCloudLabel)
+        thirdWidgetLayout.addLayout(exportLayout)
+        
+        thirdWidget.setLayout(thirdWidgetLayout)
         # ****************************************
 
         self.tabWidget = QTabWidget()
@@ -444,8 +479,8 @@ class TBTrackerMainWindow(QWidget):
             conn = sqlite.connect('TBTracker_DB/TBTrackerTag.db')
             c = conn.cursor()
             c.execute('select count(*) from tag where TagName="{}"'.format(productID))
-            count = c.fetchone()
-            if count[0] == 0:
+            count = c.fetchone()[0]
+            if count == 0:
                 c.execute('insert into tag values ("{}", "{}")'.format(productID, get_current_system_time()))
                 conn.commit()
                 c.close()
@@ -475,7 +510,11 @@ class TBTrackerMainWindow(QWidget):
                 conn.commit()
                 c.close()
         messageDialog = MessageDialog()
-        messageDialog.information(self, "消息提示对话框", "数据成功入库!")   
+        messageDialog.information(self, "消息提示对话框", "数据成功入库!") 
+
+        self.show_database()
+        self.plot_word_cloud()
+        self.plot_product_tree()
     
     def export_data(self):
         pass
@@ -523,10 +562,68 @@ class TBTrackerMainWindow(QWidget):
         else:
             self.show_database()
 
+    def plot_word_cloud(self):
+        conn = sqlite.connect('TBTracker_DB/TBTrackerTag.db')
+        c = conn.cursor()
+        c.execute('select * from tag')
+        tagQueries = c.fetchall()
+        c.close()
+
+        conn = sqlite.connect('TBTracker_DB/TBTracker.db')
+        c = conn.cursor()
+        wordFreq = []
+        for tagQuery in tagQueries:
+            c.execute('select count(*) from product where ProductName="{}"'.format(tagQuery[0]))
+            wordFreq.append((tagQuery[0], c.fetchone()[0]))
+        c.close()
+
+        wc = WordCloud(
+            font_path="TBTracker_Font/wqy-microhei.ttc",
+            width=420, 
+            height=280,
+            margin=10,
+            max_words=500,
+            background_color='white',
+            max_font_size=50
+        ).fit_words(wordFreq)
+        wc.to_file("TBTracker_Ui/WordCloud.png")
+
+        self.wordCloudLabel.setPixmap(QPixmap.fromImage(QImage("TBTracker_Ui/WordCloud.png")))
+
+    def plot_product_tree(self):
+        conn = sqlite.connect('TBTracker_DB/TBTrackerTag.db')
+        c = conn.cursor()
+        c.execute('select * from tag')
+        tagQueries = c.fetchall()
+        c.close()
+
+        conn = sqlite.connect('TBTracker_DB/TBTracker.db')
+        c = conn.cursor()
+        roots = [QTreeWidgetItem(self.productTree) for _ in range(len(tagQueries))]
+        for i, tagQuery in enumerate(tagQueries):
+            roots[i].setText(0, tagQuery[0])
+            roots[i].setFont(0, self.table_2_Font)
+            roots[i].setCheckState(0, False)
+
+            c.execute('select ShopName from product where ProductName="{}"'.format(tagQuery[0]))
+            shopNames = [query[0] for query in c.fetchall()]
+            childs = [QTreeWidgetItem(roots[i]) for _ in range(len(shopNames))]
+            for j, child in enumerate(childs):
+                child.setText(0, shopNames[j])
+                child.setFont(0, self.table_1_Font)
+                child.setCheckState(0, False)
+                c.execute('select count(*) from product where ProductName="{}" and ShopName="{}"'.format(tagQuery[0], shopNames[j]))
+                child.setText(1, str(c.fetchone()[0]))
+            
+            self.productTree.addTopLevelItem(roots[i])
+
+        c.close()
+
     def eventFilter(self, source, event):
         if event.type() == QEvent.MouseButtonPress:
-            if 75 <= event.pos().x() <= 135 and 5 <= event.pos().y() <= 25:
-                self.show_database()
+            pass
+            # if 75 <= event.pos().x() <= 135 and 5 <= event.pos().y() <= 25:
+            # if 145 <= event.pos().x() <= 215 and 5 <= event.pos().y() <= 25:
         return QWidget.eventFilter(self, source, event)
         
 
