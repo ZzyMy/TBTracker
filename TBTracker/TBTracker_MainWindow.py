@@ -742,4 +742,7 @@ class TBTrackerAddDataWindow(QWidget):
 
     def cancel(self):
         self.close()
+
+    def celery(self):
+        pass
     
