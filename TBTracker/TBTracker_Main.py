@@ -13,7 +13,7 @@ from TBTracker_MainWindow import TBTrackerMainWindow, TBTrackerAddDataWindow
 @author  : Zhou Jian
 @email   : zhoujian@hust.edu.cn
 @version : V1.0
-@date    : 2017.01.20
+@date    : 2017.01.24
 '''
 
 class OverLoadClassMethod(object):

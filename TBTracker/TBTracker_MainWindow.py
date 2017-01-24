@@ -67,7 +67,7 @@ from TBTracker_Gui.TBTracker_Gui_Dialog import *
 @author  : Zhou Jian
 @email   : zhoujian@hust.edu.cn
 @version : V1.0
-@date    : 2017.01.20
+@date    : 2017.01.24
 '''
 
 class TBTrackerMainWindow(QWidget):

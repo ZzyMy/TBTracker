@@ -15,7 +15,7 @@ QMessageBox.about       关于框
 @author  : Zhou Jian
 @email   : zhoujian@hust.edu.cn
 @version : V1.0
-@date    : 2017.01.20
+@date    : 2017.01.24
 '''
 
 class BaseDialog(QDialog):

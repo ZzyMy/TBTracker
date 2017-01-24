@@ -7,7 +7,7 @@ import time
 @author  : Zhou Jian
 @email   : zhoujian@hust.edu.cn
 @version : V1.0
-@date    : 2017.01.20
+@date    : 2017.01.24
 '''
 
 # 检查当前操作系统版本信息并依此设置主路径
