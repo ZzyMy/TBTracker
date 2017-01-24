@@ -55,6 +55,7 @@ from PyQt5.QtWidgets import QTableWidgetItem
 from PyQt5.QtWidgets import QTabWidget
 from PyQt5.QtWidgets import QTreeWidget
 from PyQt5.QtWidgets import QTreeWidgetItem
+from PyQt5.QtWidgets import QTreeWidgetItemIterator
 from PyQt5.QtWidgets import QVBoxLayout
 from PyQt5.QtWidgets import QWidget
 # ********************用户自定义相关模块导入********************
@@ -165,7 +166,7 @@ class TBTrackerMainWindow(QWidget):
         self.DBTable = QTableWidget(0, 6)
         self.DBTable.setHorizontalHeaderLabels(["商品标识", "标题", "店铺名", "价格", "淘宝价", "是否删除数据？"])
         self.DBTable.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
-        # self.DBTable.verticalHeader().setVisible(False)
+        self.DBTable.setSelectionMode(QAbstractItemView.NoSelection)
         self.DBTable.setEditTriggers(QAbstractItemView.NoEditTriggers)
 
         self.addButton = AddButton()
@@ -200,13 +201,18 @@ class TBTrackerMainWindow(QWidget):
         self.productTree.setColumnCount(2)
         self.productTree.setHeaderLabels(['商品标识','商品数量'])
         self.productTree.header().setSectionResizeMode(QHeaderView.Stretch)
+        self.productTree.setSelectionMode(QAbstractItemView.NoSelection)
         productTreeLayout = QHBoxLayout()
         productTreeLayout.addWidget(self.productTree)
 
         exportButton = ExportButton()
         exportButton.clicked.connect(self.export_data)
+        allSelectButton = AllSelectButton()
+        allSelectButton.clicked.connect(self.select_all)
         dataExportLayout = QHBoxLayout()
         dataExportLayout.addStretch()
+        dataExportLayout.setSpacing(20)
+        dataExportLayout.addWidget(allSelectButton)
         dataExportLayout.addWidget(exportButton)
 
         exportLayout = QVBoxLayout()
@@ -514,10 +520,6 @@ class TBTrackerMainWindow(QWidget):
 
         self.show_database()
         self.plot_word_cloud()
-        self.plot_product_tree()
-    
-    def export_data(self):
-        pass
 
     def show_database(self):
         conn = sqlite.connect('TBTracker_DB/TBTracker.db')
@@ -544,7 +546,7 @@ class TBTrackerMainWindow(QWidget):
         notDeleteCNT = 0
         for j in range(self.DBCNT):
             flag = self.DBTable.item(j, 5).checkState()
-            if flag == 2:
+            if flag == Qt.Checked:
                 conn = sqlite.connect('TBTracker_DB/TBTracker.db')
                 c = conn.cursor()
                 c.execute('delete from product where ProductName="{}" and Title="{}" and ShopName="{}" and Price="{}"'.format(
@@ -561,6 +563,7 @@ class TBTrackerMainWindow(QWidget):
             messageDialog.warning(self, "消息提示对话框", "无效操作!")
         else:
             self.show_database()
+            self.plot_word_cloud()
 
     def plot_word_cloud(self):
         conn = sqlite.connect('TBTracker_DB/TBTrackerTag.db')
@@ -606,7 +609,7 @@ class TBTrackerMainWindow(QWidget):
             roots[i].setCheckState(0, False)
 
             c.execute('select ShopName from product where ProductName="{}"'.format(tagQuery[0]))
-            shopNames = [query[0] for query in c.fetchall()]
+            shopNames = list(set([query[0] for query in c.fetchall()]))
             childs = [QTreeWidgetItem(roots[i]) for _ in range(len(shopNames))]
             for j, child in enumerate(childs):
                 child.setText(0, shopNames[j])
@@ -619,11 +622,65 @@ class TBTrackerMainWindow(QWidget):
 
         c.close()
 
+    def select_all(self):
+        currentTopLevelItemIndex = 0
+        it = QTreeWidgetItemIterator(self.productTree)
+        while it.value():
+            if it.value() is self.productTree.topLevelItem(currentTopLevelItemIndex):
+                currentTopLevelItemIndex += 1
+                if it.value().checkState(0) == Qt.Checked:
+                    for _ in range(it.value().childCount()):
+                        it = it.__iadd__(1)
+                        it.value().setCheckState(0, Qt.Checked)
+            it = it.__iadd__(1)
+
+    def export_data(self):
+        mainDirectory = check_os()
+        currentFileDialog = SaveFileDialog()
+        fileName, filetype = currentFileDialog.save_file(self, caption="手动保存数据", directory=mainDirectory, filter="Excel Files (*.xlsx)")
+
+        conn = sqlite.connect('TBTracker_DB/TBTracker.db')
+        c = conn.cursor()
+
+        currentTopLevelItemIndex = 0
+        exportDataList = []
+        it = QTreeWidgetItemIterator(self.productTree)
+        while it.value():
+            if it.value() is self.productTree.topLevelItem(currentTopLevelItemIndex):
+                currentTopLevelItemIndex += 1
+            else:
+                if it.value().checkState(0) == Qt.Checked:
+                    c.execute('select * from product where ProductName="{}" and ShopName="{}"'.format(
+                        it.value().parent().text(0),
+                        it.value().text(0)))
+                    queries = c.fetchall()
+                    exportDataList += queries
+            it = it.__iadd__(1)
+        
+        excel = xlwt.Workbook()
+        sheet = excel.add_sheet('淘宝商品数据', cell_overwrite_ok=True)
+        sheet.write(0, 0, "商品标识")
+        sheet.write(0, 1, "URL")
+        sheet.write(0, 2, "标题")
+        sheet.write(0, 3, "店铺名")
+        sheet.write(0, 4, "价格")
+        sheet.write(0, 5, "淘宝价")
+        sheet.write(0, 6, "上次更新时间")
+        for i, data in enumerate(exportDataList):
+            sheet.write(i + 1, 0, data[0])
+            sheet.write(i + 1, 1, data[1])
+            sheet.write(i + 1, 2, data[2])
+            sheet.write(i + 1, 3, data[3])
+            sheet.write(i + 1, 4, data[4])
+            sheet.write(i + 1, 5, data[5])
+            sheet.write(i + 1, 6, data[6])
+        excel.save("{}.xlsx".format(fileName))
+
     def eventFilter(self, source, event):
         if event.type() == QEvent.MouseButtonPress:
-            pass
             # if 75 <= event.pos().x() <= 135 and 5 <= event.pos().y() <= 25:
             # if 145 <= event.pos().x() <= 215 and 5 <= event.pos().y() <= 25:
+            pass
         return QWidget.eventFilter(self, source, event)
         
 

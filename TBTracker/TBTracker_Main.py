@@ -81,5 +81,4 @@ if __name__ == '__main__':
 
     myTBTrackerMainWindow.show()
 
-    qApp.installEventFilter(myTBTrackerMainWindow)
     sys.exit(app.exec_())

@@ -113,4 +113,16 @@ class CancelButton(BaseButton):
     # 功能绑定 - 
     def function_init(self):
         pass
+
+class AllSelectButton(BaseButton):
+    '''
+    全选按钮，继承自基类按钮
+    '''
+    def __init__(self):
+        super(AllSelectButton, self).__init__(name="全部选择")
+        self.function_init()
+    
+    # 功能绑定 - 
+    def function_init(self):
+        pass
     

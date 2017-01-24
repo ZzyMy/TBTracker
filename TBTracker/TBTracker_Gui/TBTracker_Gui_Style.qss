@@ -21,6 +21,11 @@ QTableWidget {
     border: 2px solid #F52B00;
 }
 
+QTreeWidget {
+    background-color: #FFFFFF;
+    border: 2px solid #F52B00;
+}
+
 QProgressBar {
     background-color: #CCCCCC;
 }
