@@ -285,7 +285,7 @@ class TBTrackerMainWindow(QWidget):
                     tm_price_panel = WebDriverWait(driver, 10).until(
                         EC.presence_of_element_located((By.CLASS_NAME, 'tm-price-panel')))
                     price = WebDriverWait(tm_price_panel, 10).until(
-                        EC.presence_of_element_located((By.CLASS_NAME, 'tm-price'))).text
+                        EC.presence_of_element_located((By.CLASS_NAME, 'tm-price'))).text.strip()
                     driver.close()
                     if match_price != price:
                         taobao_price = match_price

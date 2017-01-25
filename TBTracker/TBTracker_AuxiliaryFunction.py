@@ -35,4 +35,11 @@ def get_current_screen_size():
 # 获取当前系统时间
 def get_current_system_time():
     return time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(time.time()))
+
+# 获取当前系统日期
+def get_current_system_date():
+    return time.strftime("%Y-%m-%d", time.localtime(time.time()))
+    
+if __name__ == '__main__':
+    print(get_current_system_date())
     
