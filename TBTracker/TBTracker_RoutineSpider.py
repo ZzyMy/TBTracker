@@ -18,6 +18,7 @@ import requests
 import smtplib
 import sqlite3 as sqlite
 import xlwt
+import yaml
 
 from email import encoders
 from email.header import Header
@@ -163,9 +164,15 @@ def main():
             sheet.write(i + 1, 8, queries[emmitList[i][0]][6])
         excel.save('TBTracker_Excel/{}-淘宝商品数据变更表.xlsx'.format(get_current_system_date()))
 
+        with open('config.yaml', 'r') as fd:
+            yamlFile = yaml.load(fd)
+            smtpServerEmail = yamlFile['SMTPServer']['Email']
+            smtpServerPassWord = yamlFile['SMTPServer']['PassWord']
+            destinationEmail = yamlFile['Destination']['Email']
+
         msg = MIMEMultipart('alternative')
-        msg['From'] = _format_addr('TBTracker机器人<summychou@163.com>')
-        msg['To'] = _format_addr('管理员<825942030@qq.com>')
+        msg['From'] = _format_addr('TBTracker机器人<{}>'.format(smtpServerEmail))
+        msg['To'] = _format_addr('管理员<{}>'.format(destinationEmail))
         msg['Subject'] = Header('TBTracker机器人发送的邮件', 'utf-8').encode()
         msg.attach(MIMEText('Life is Short, I Use Python!', 
             'plain', 'utf-8'))
@@ -194,8 +201,8 @@ def main():
             msg.attach(mimeImage)
 
         smtp = smtplib.SMTP('smtp.163.com', '25')
-        smtp.login('summychou@163.com', 'yunan0808')
-        smtp.sendmail('summychou@163.com', ['825942030@qq.com'], msg.as_string())
+        smtp.login(smtpServerEmail, smtpServerPassWord)
+        smtp.sendmail(smtpServerEmail, [destinationEmail], msg.as_string())
         smtp.quit()
 
     c.close()

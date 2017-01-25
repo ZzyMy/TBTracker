@@ -84,3 +84,4 @@ QTreeView::branch:open:has-children:has-siblings {
     border-image: none;
     image: url(./TBTracker_Ui/branch-open.png);
 }
+
