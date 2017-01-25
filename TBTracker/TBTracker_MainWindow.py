@@ -229,10 +229,16 @@ class TBTrackerMainWindow(QWidget):
         thirdWidget.setLayout(thirdWidgetLayout)
         # ****************************************
 
+        # ****************************************
+        fourthWidget = QWidget()
+
+        # ****************************************
+
         self.tabWidget = QTabWidget()
         self.tabWidget.addTab(firstWidget, "数据爬虫")
         self.tabWidget.addTab(secondWidget, "数据后台")
         self.tabWidget.addTab(thirdWidget, "数据导出")
+        self.tabWidget.addTab(fourthWidget, "数据跟踪")
 
         self.layout = QVBoxLayout()
         self.layout.setContentsMargins(50, 20, 50, 13)
@@ -678,8 +684,6 @@ class TBTrackerMainWindow(QWidget):
 
     def eventFilter(self, source, event):
         if event.type() == QEvent.MouseButtonPress:
-            # if 75 <= event.pos().x() <= 135 and 5 <= event.pos().y() <= 25:
-            # if 145 <= event.pos().x() <= 215 and 5 <= event.pos().y() <= 25:
             pass
         return QWidget.eventFilter(self, source, event)
         
