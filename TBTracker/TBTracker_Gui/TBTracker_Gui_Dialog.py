@@ -54,6 +54,16 @@ class OpenFileDialog(BaseFileDialog):
     def open_file(self, *args, **kwargs):
         return self.getOpenFileName(*args, **kwargs)
 
+class OpenFilesDialog(BaseFileDialog):
+    '''
+    选择文件对话框，继承自基类文件对话框
+    '''
+    def __init__(self):
+        super(OpenFilesDialog, self).__init__()
+
+    def open_files(self, *args, **kwargs):
+        return self.getOpenFileNames(*args, **kwargs)
+
 
 class SaveFileDialog(BaseFileDialog):
     '''

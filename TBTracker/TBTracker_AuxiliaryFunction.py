@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 # ********************系统自带相关模块导入********************
+import datetime
 import platform
 import time
 
@@ -39,7 +40,22 @@ def get_current_system_time():
 # 获取当前系统日期
 def get_current_system_date():
     return time.strftime("%Y-%m-%d", time.localtime(time.time()))
-    
+
+# 生成指定范围内的日期序列
+def generate_date_list(start, end):
+    start_date = datetime.date(*start)
+    end_date = datetime.date(*end)
+
+    date_list = []
+    current_date = start_date
+    while current_date != end_date:
+        # date_list.append("%04d-%02d-%02d" % (current_date.year, current_date.month, current_date.day))
+        date_list.append(current_date)
+        current_date += datetime.timedelta(1)
+    # date_list.append("%04d-%02d-%02d" % (current_date.year, current_date.month, current_date.day))
+    date_list.append(current_date)
+    return date_list
+
 if __name__ == '__main__':
-    print(get_current_system_date())
+    print(generate_date_list((2014, 7, 28), (2014, 8, 3)))
     

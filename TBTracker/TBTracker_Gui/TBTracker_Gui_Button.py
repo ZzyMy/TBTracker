@@ -125,4 +125,63 @@ class AllSelectButton(BaseButton):
     # 功能绑定 - 
     def function_init(self):
         pass
+
+class ChangeConfigButton(BaseButton):
+    '''
+    更改配置按钮，继承自基类按钮
+    '''
+    def __init__(self):
+        super(ChangeConfigButton, self).__init__(name="更改配置")
+        self.function_init()
     
+    # 功能绑定 - 
+    def function_init(self):
+        pass
+
+class ManualUpdateButton(BaseButton):
+    '''
+    手动更新按钮，继承自基类按钮
+    '''
+    def __init__(self):
+        super(ManualUpdateButton, self).__init__(name="手动更新")
+        self.function_init()
+    
+    # 功能绑定 - 
+    def function_init(self):
+        pass
+
+class SelectCommodityButton(BaseButton):
+    '''
+    选择商品按钮，继承自基类按钮
+    '''
+    def __init__(self):
+        super(SelectCommodityButton, self).__init__(name="选择商品")
+        self.function_init()
+    
+    # 功能绑定 - 
+    def function_init(self):
+        pass
+
+class MonthlyDataButton(BaseButton):
+    '''
+    月份数据按钮，继承自基类按钮
+    '''
+    def __init__(self):
+        super(MonthlyDataButton, self).__init__(name="月份数据")
+        self.function_init()
+    
+    # 功能绑定 - 
+    def function_init(self):
+        pass
+
+class YearlyDataButton(BaseButton):
+    '''
+    年份数据按钮，继承自基类按钮
+    '''
+    def __init__(self):
+        super(YearlyDataButton, self).__init__(name="年份数据")
+        self.function_init()
+    
+    # 功能绑定 - 
+    def function_init(self):
+        pass

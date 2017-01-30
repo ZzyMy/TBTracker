@@ -16,6 +16,7 @@ ErrHandler.setFormatter(ERRORFORMATTER)
 Logger.addHandler(ErrHandler)
 
 import math
+import matplotlib.dates as mdate
 import matplotlib.pyplot as plt
 import os
 import random
@@ -23,6 +24,7 @@ import requests
 import sqlite3 as sqlite
 import sys
 import xlwt
+import yaml
 
 from bs4 import BeautifulSoup
 from PIL import Image
@@ -43,6 +45,7 @@ from PyQt5.QtGui import QImage
 from PyQt5.QtGui import QPixmap
 from PyQt5.QtWidgets import qApp
 from PyQt5.QtWidgets import QAbstractItemView
+from PyQt5.QtWidgets import QComboBox
 from PyQt5.QtWidgets import QFrame
 from PyQt5.QtWidgets import QGridLayout
 from PyQt5.QtWidgets import QHBoxLayout
@@ -50,17 +53,21 @@ from PyQt5.QtWidgets import QHeaderView
 from PyQt5.QtWidgets import QLabel
 from PyQt5.QtWidgets import QLineEdit
 from PyQt5.QtWidgets import QProgressBar
+from PyQt5.QtWidgets import QRadioButton
+from PyQt5.QtWidgets import QSlider
 from PyQt5.QtWidgets import QTableWidget
 from PyQt5.QtWidgets import QTableWidgetItem
 from PyQt5.QtWidgets import QTabWidget
+from PyQt5.QtWidgets import QTextEdit
 from PyQt5.QtWidgets import QTreeWidget
 from PyQt5.QtWidgets import QTreeWidgetItem
 from PyQt5.QtWidgets import QTreeWidgetItemIterator
 from PyQt5.QtWidgets import QVBoxLayout
 from PyQt5.QtWidgets import QWidget
 # ********************用户自定义相关模块导入********************
-from TBTracker_AuxiliaryFunction import check_os, get_current_screen_size, get_current_system_time
+from TBTracker_AuxiliaryFunction import *
 from TBTracker_Gui.TBTracker_Gui_Button import *
+from TBTracker_Gui.TBTracker_Gui_Canvas import *
 from TBTracker_Gui.TBTracker_Gui_Dialog import *
 
 '''
@@ -232,6 +239,30 @@ class TBTrackerMainWindow(QWidget):
         # ****************************************
         fourthWidget = QWidget()
 
+        self.historyDataCanvas = HistoryDataCanvas()
+        historyDataLayout = QVBoxLayout()
+        historyDataLayout.addWidget(self.historyDataCanvas)
+
+        self.selectCommodityButton = SelectCommodityButton()
+        self.monthlyDataButton = MonthlyDataButton()
+        self.yearlyDataButton = YearlyDataButton()
+        manualUpdateButton = ManualUpdateButton()
+        manualUpdateButton.clicked.connect(self.manual_update)
+        buttonLayout = QHBoxLayout()
+        buttonLayout.addStretch()
+        buttonLayout.setSpacing(30)
+        buttonLayout.addWidget(self.selectCommodityButton)
+        buttonLayout.addWidget(self.monthlyDataButton)
+        buttonLayout.addWidget(self.yearlyDataButton)
+        buttonLayout.addWidget(manualUpdateButton)
+        
+        fourthWidgetLayout = QVBoxLayout()
+        fourthWidgetLayout.setSpacing(10)
+        fourthWidgetLayout.setContentsMargins(50, 0, 50, 10)
+        fourthWidgetLayout.addLayout(historyDataLayout)
+        fourthWidgetLayout.addLayout(buttonLayout)
+
+        fourthWidget.setLayout(fourthWidgetLayout)
         # ****************************************
 
         self.tabWidget = QTabWidget()
@@ -682,6 +713,53 @@ class TBTrackerMainWindow(QWidget):
             sheet.write(i + 1, 6, data[6])
         excel.save("{}.xlsx".format(fileName))
 
+    def manual_update(self):
+        dateList = generate_date_list((2016, 12, 1), (2017, 1, 1))
+        priceList = [random.randint(100, 300) for _ in range(len(dateList))]
+        
+        self.historyDataCanvas.axes.plot()
+        self.historyDataCanvas.axes.hold(True)
+
+        self.historyDataCanvas.axes.plot_date(dateList, priceList, 'r-o', linewidth=2)
+        self.historyDataCanvas.axes.xaxis_date()
+        self.historyDataCanvas.axes.xaxis.set_major_formatter(mdate.DateFormatter('%Y-%m-%d'))
+        self.historyDataCanvas.axes.set_xticks(dateList)
+        self.historyDataCanvas.axes.set_xticklabels(dateList, rotation=90, fontsize=6)
+        self.historyDataCanvas.axes.set_xlabel("时间轴", fontproperties=FONT, fontsize=10)
+        self.historyDataCanvas.axes.set_yticks([100 * i for i in range(11)])
+        self.historyDataCanvas.axes.set_ylabel("价格数据/￥", fontproperties=FONT, fontsize=10)
+        self.historyDataCanvas.axes.set_title("淘宝商品历史数据图", fontproperties=FONT, fontsize=14)
+        self.historyDataCanvas.draw()
+
+        self.historyDataCanvas.axes.hold(False)
+
+    def select_commodity(self):
+        pass
+
+    def select_month(self):
+        pass
+
+    def select_year(self):
+        pass
+    
+    # def init_config(self):
+    #     with open('config.yaml', 'r') as fd:
+    #         yamlFile = yaml.load(fd)
+    #         smtpServerEmail = yamlFile['SMTPServer']['Email']
+    #         smtpServerPassWord = yamlFile['SMTPServer']['PassWord']
+    #         destinationEmail = yamlFile['Destination']['Email']
+    #     self.configTextEdit.append('SMTPServer Email:\n{}\n'.format(smtpServerEmail))
+    #     self.configTextEdit.append('SMTPServer PassWord:\n{}\n'.format(smtpServerPassWord))
+    #     self.configTextEdit.append('Destination Email:\n{}'.format(destinationEmail))
+
+    # def change_configuration(self):
+    #     if self.configTextEdit.isReadOnly():
+    #         self.changeConfigButton.setText("确认配置")
+    #         self.configTextEdit.setReadOnly(False)
+    #     else:
+    #         self.changeConfigButton.setText("更改配置")
+    #         self.configTextEdit.setReadOnly(True)
+
     def eventFilter(self, source, event):
         if event.type() == QEvent.MouseButtonPress:
             pass
@@ -747,6 +825,142 @@ class TBTrackerAddDataWindow(QWidget):
     def cancel(self):
         self.close()
 
-    def celery(self):
+class TBTrackerSelectCommodityWindow(QWidget):
+    def __init__(self):
+        super(TBTrackerSelectCommodityWindow, self).__init__()
+        self.create_main_window()
+
+    def create_main_window(self):
+        self.setWindowTitle("选择商品")
+        self.setWindowIcon(QIcon('TBTracker_Ui/python.png'))
+        self.setMinimumSize(700, 350)
+        self.setMaximumSize(700, 350)
+        self.set_widgets()
+        self.setLayout(self.layout)
+
+    def set_widgets(self):
+        self.pull_all_commodities()
+
+        self.confirmButton = ConfirmButton()
+        cancelButton = CancelButton()
+        cancelButton.clicked.connect(self.cancel)
+        operateLayout = QHBoxLayout()
+        operateLayout.addStretch()
+        operateLayout.setSpacing(20)
+        operateLayout.addWidget(self.confirmButton)
+        operateLayout.addWidget(cancelButton)
+
+        self.layout = QVBoxLayout()
+        self.layout.setContentsMargins(40, 20, 40, 20)
+        self.layout.setSpacing(10)
+        self.layout.addWidget(self.commodityTable)
+        self.layout.addLayout(operateLayout)
+
+    def confirm(self):
         pass
-    
+
+    def cancel(self):
+        self.close()
+
+    def pull_all_commodities(self):
+        conn = sqlite.connect('TBTracker_DB/TBTracker.db')
+        c = conn.cursor()
+        c.execute('select Title from product')
+        titleQueries = c.fetchall()
+        c.close()
+
+        self.commodityTable = QTableWidget(len(titleQueries), 2)
+        self.commodityTable.horizontalHeader().hide()
+        self.commodityTable.verticalHeader().hide()
+        self.commodityTable.setSelectionMode(QAbstractItemView.NoSelection)
+        self.commodityTable.setEditTriggers(QAbstractItemView.NoEditTriggers)
+        self.commodityTable.setColumnWidth(0, 25)
+        self.commodityTable.setColumnWidth(1, 577)
+
+        radioButtonList = [QRadioButton() for i in range(len(titleQueries))]
+        commodityList =  [QTableWidgetItem(titleQueries[i][0]) for i in range(len(titleQueries))]
+        for i in range(len(titleQueries)):
+            self.commodityTable.setCellWidget(i, 0, radioButtonList[i])
+            self.commodityTable.setItem(i, 1, commodityList[i])
+
+
+class TBTrackerSelectMonthWindow(QWidget):
+    def __init__(self):
+        super(TBTrackerSelectMonthWindow, self).__init__()
+        self.create_main_window()
+
+    def create_main_window(self):
+        self.setWindowTitle("选择月份")
+        self.setWindowIcon(QIcon('TBTracker_Ui/python.png'))
+        self.setMinimumSize(250, 100)
+        self.setMaximumSize(250, 100)
+        self.set_widgets()
+        self.setLayout(self.layout)
+
+    def set_widgets(self):
+        self.monthComboBox = QComboBox()
+        monthList = ["一月份数据", "二月份数据", "三月份数据", "四月份数据",
+                     "五月份数据", "六月份数据", "七月份数据", "八月份数据",
+                     "九月份数据", "十月份数据", "十一月份数据", "十二月份数据"] 
+        self.monthComboBox.addItems(monthList)
+
+        self.confirmButton = ConfirmButton()
+        cancelButton = CancelButton()
+        cancelButton.clicked.connect(self.cancel)
+        operateLayout = QHBoxLayout()
+        operateLayout.addStretch()
+        operateLayout.setSpacing(20)
+        operateLayout.addWidget(self.confirmButton)
+        operateLayout.addWidget(cancelButton)
+
+        self.layout = QVBoxLayout()
+        self.layout.setContentsMargins(20, 20, 20,10)
+        self.layout.setSpacing(10)
+        self.layout.addWidget(self.monthComboBox)
+        self.layout.addLayout(operateLayout)
+
+    def confirm(self):
+        pass
+
+    def cancel(self):
+        self.close()
+
+
+class TBTrackerSelectYearWindow(QWidget):
+    def __init__(self):
+        super(TBTrackerSelectYearWindow, self).__init__()
+        self.create_main_window()
+
+    def create_main_window(self):
+        self.setWindowTitle("选择年份")
+        self.setWindowIcon(QIcon('TBTracker_Ui/python.png'))
+        self.setMinimumSize(250, 100)
+        self.setMaximumSize(250, 100)
+        self.set_widgets()
+        self.setLayout(self.layout)
+
+    def set_widgets(self):
+        self.yearComboBox = QComboBox()
+        yearList = ["2017"]
+        self.yearComboBox.addItems(yearList)
+
+        self.confirmButton = ConfirmButton()
+        cancelButton = CancelButton()
+        cancelButton.clicked.connect(self.cancel)
+        operateLayout = QHBoxLayout()
+        operateLayout.addStretch()
+        operateLayout.setSpacing(20)
+        operateLayout.addWidget(self.confirmButton)
+        operateLayout.addWidget(cancelButton)
+
+        self.layout = QVBoxLayout()
+        self.layout.setContentsMargins(20, 20, 20, 10)
+        self.layout.setSpacing(10)
+        self.layout.addWidget(self.yearComboBox)
+        self.layout.addLayout(operateLayout)
+
+    def confirm(self):
+        pass
+
+    def cancel(self):
+        self.close()
