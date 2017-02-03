@@ -70,7 +70,7 @@ class OverLoadClassMethod(object):
             radio = myTBTrackerSelectCommodityWindow.commodityTable.cellWidget(i, 0)
             checkedFlag = radio.isChecked()
             if checkedFlag:
-                print(myTBTrackerSelectCommodityWindow.commodityTable.item(i, 1).text().strip())
+                print(myTBTrackerSelectCommodityWindow.commodityTable.item(i, 1).text().strip())  ## TODO
                 selectedFlag = True
                 break
         if selectedFlag:
@@ -84,7 +84,7 @@ class OverLoadClassMethod(object):
 
     def tb_tracker_select_month_window_confirm(self):
         selectedMonth = myTBTrackerSelectMonthWindow.monthComboBox.itemText(myTBTrackerSelectMonthWindow.monthComboBox.currentIndex())
-        print(MonthMap[selectedMonth])
+        print(MonthMap[selectedMonth])  ## TODO
         myTBTrackerSelectMonthWindow.close()
 
     def tb_tracker_select_year_window(self):
@@ -92,7 +92,7 @@ class OverLoadClassMethod(object):
 
     def tb_tracker_select_year_window_confirm(self):
         selectedYear = myTBTrackerSelectYearWindow.yearComboBox.itemText(myTBTrackerSelectYearWindow.yearComboBox.currentIndex())
-        print(selectedYear)
+        print(selectedYear)  ## TODO
         myTBTrackerSelectYearWindow.close()
 
 if __name__ == '__main__':

@@ -301,8 +301,14 @@ class TBTrackerMainWindow(QWidget):
             soup = BeautifulSoup(html.text, 'lxml')
             try:
                 title = soup.find(name='h3', attrs={'class': 'tb-main-title'})['data-title'].strip()
-            except TypeError as e:
-                title = soup.find(name='div', attrs={'class': 'tb-detail-hd'}).find(name='h1').get_text().strip()
+            except Exception as e:
+                try:
+                    title = soup.find(name='div', attrs={'class': 'tb-detail-hd'}).find(name='h1').get_text().strip()
+                except Exception as e:
+                    title = soup.find(name='div', attrs={'class': 'main-box'}).find(name='h2').get_text().split("】")[1].split("（")[0].strip()
+                    taobao_price = soup.find(name='div', attrs={'class': 'main-box'}).find(name='span', attrs={'class': 'J_actPrice'}).get_text().lstrip("￥").strip()
+                    price = soup.find(name='div', attrs={'class': 'main-box'}).find(name='del', attrs={'class': 'originPrice'}).get_text().lstrip("￥").strip()
+                    return title, price, taobao_price
             try:
                 price = soup.find(name='li', attrs={'id': 'J_StrPriceModBox'}). \
                     find(name='em', attrs={'class': 'tb-rmb-num'}).get_text().strip()
@@ -362,12 +368,15 @@ class TBTrackerMainWindow(QWidget):
                             items = WebDriverWait(m_item_list, 10).until(
                                 EC.presence_of_all_elements_located((By.CLASS_NAME, 'items')))[0]
                             allItems = WebDriverWait(items, 10).until(
-                                EC.presence_of_all_elements_located((By.CLASS_NAME, 'item'))
+                                EC.presence_of_all_elements_located((By.CLASS_NAME, 'J_MouserOnverReq'))
                             )
+                            
                             self.returnCNT = len(allItems)
                             Logger.info('总共返回{0}个搜索结果'.format(self.returnCNT))
 
+                            self.taobaoDataTable.clearContents()
                             self.taobaoDataTable.setRowCount(self.returnCNT * 6)
+
                             imageLabel = [QLabel() for _ in range(self.returnCNT)]
                             titleItem = [QTableWidgetItem() for _ in range(self.returnCNT)]
                             shopItem = [QTableWidgetItem("店铺：") for _ in range(self.returnCNT)]
@@ -713,25 +722,27 @@ class TBTrackerMainWindow(QWidget):
             sheet.write(i + 1, 6, data[6])
         excel.save("{}.xlsx".format(fileName))
 
-    def manual_update(self):
-        dateList = generate_date_list((2016, 12, 1), (2017, 1, 1))
-        priceList = [random.randint(100, 300) for _ in range(len(dateList))]
+    def do_the_plot(self, dateList, priceList):
+        # dateList = generate_date_list((2016, 12, 1), (2017, 1, 1))
+        # priceList = [random.randint(100, 300) for _ in range(len(dateList))]
         
-        self.historyDataCanvas.axes.plot()
-        self.historyDataCanvas.axes.hold(True)
-
         self.historyDataCanvas.axes.plot_date(dateList, priceList, 'r-o', linewidth=2)
         self.historyDataCanvas.axes.xaxis_date()
         self.historyDataCanvas.axes.xaxis.set_major_formatter(mdate.DateFormatter('%Y-%m-%d'))
         self.historyDataCanvas.axes.set_xticks(dateList)
         self.historyDataCanvas.axes.set_xticklabels(dateList, rotation=90, fontsize=6)
         self.historyDataCanvas.axes.set_xlabel("时间轴", fontproperties=FONT, fontsize=10)
-        self.historyDataCanvas.axes.set_yticks([100 * i for i in range(11)])
+        # self.historyDataCanvas.axes.set_yticks([100 * i for i in range(11)])
         self.historyDataCanvas.axes.set_ylabel("价格数据/￥", fontproperties=FONT, fontsize=10)
         self.historyDataCanvas.axes.set_title("淘宝商品历史数据图", fontproperties=FONT, fontsize=14)
         self.historyDataCanvas.draw()
 
-        self.historyDataCanvas.axes.hold(False)
+    def manual_update(self):
+        import subprocess
+        child = subprocess.Popen(["sudo", "python3", "TBTracker_RoutineSpider.py"])
+        child.wait()
+        messageDialog = MessageDialog()
+        messageDialog.information(self, "消息提示对话框", "手动更新完毕!")
 
     def select_commodity(self):
         pass
@@ -964,3 +975,4 @@ class TBTrackerSelectYearWindow(QWidget):
 
     def cancel(self):
         self.close()
+    

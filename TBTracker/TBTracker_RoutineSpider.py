@@ -37,6 +37,13 @@ from selenium.webdriver.support import expected_conditions as EC
 
 from TBTracker_AuxiliaryFunction import get_current_system_time, get_current_system_date
 
+'''
+@author  : Zhou Jian
+@email   : zhoujian@hust.edu.cn
+@version : V1.0
+@date    : 2017.01.24
+'''
+
 HEADERS = {
     'user-agent': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:50.0) Gecko/20100101 Firefox/50.0',
 }
@@ -59,15 +66,21 @@ def find_out_real_price(shop_url):
         except Exception as e:
             taobao_price = '无'
     except Exception as e:
-        price = WebDriverWait(tm_price_panel, 10).until(
-            EC.presence_of_element_located((By.CLASS_NAME, 'tm-price'))).text.strip()
         try:
-            tm_promo_panel = WebDriverWait(driver, 10).until(
-                EC.presence_of_element_located((By.ID, 'J_PromoPrice')))
-            taobao_price = WebDriverWait(tm_promo_panel, 10).until(
+            price = WebDriverWait(tm_price_panel, 10).until(
                 EC.presence_of_element_located((By.CLASS_NAME, 'tm-price'))).text.strip()
+            try:
+                tm_promo_panel = WebDriverWait(driver, 10).until(
+                    EC.presence_of_element_located((By.ID, 'J_PromoPrice')))
+                taobao_price = WebDriverWait(tm_promo_panel, 10).until(
+                    EC.presence_of_element_located((By.CLASS_NAME, 'tm-price'))).text.strip()
+            except Exception as e:
+                taobao_price = '无'
         except Exception as e:
-            taobao_price = '无'
+            price = WebDriverWait(driver, 10).until(
+                EC.presence_of_element_located((By.CLASS_NAME, 'originPrice'))).text.lstrip("￥").strip()
+            taobao_price = WebDriverWait(driver, 10).until(
+                EC.presence_of_element_located((By.CLASS_NAME, 'J_actPrice'))).text.lstrip("￥").strip()
     finally:
         driver.close()
     return (price, taobao_price)
@@ -82,6 +95,8 @@ def main():
 
     c.execute('select URL from product')
     URLList = [query[0] for query in c.fetchall()]
+    c.execute('select Title from product')
+    TitleList = [query[0] for query in c.fetchall()]
     c.execute('select Price from product')
     priceList = [query[0] for query in c.fetchall()]
     c.execute('select TaobaoPrice from product')
@@ -89,6 +104,9 @@ def main():
     Logger.info('总共有{}件商品的数据需要跟踪...'.format(len(URLList)))
     changeCNT = 0
     emmitList = []
+
+    conn_ = sqlite.connect('TBTracker_DB/TBTrackerRoutineSpider.db')
+    c_ = conn_.cursor()
     for i, url in enumerate(URLList):
         res = find_out_real_price(url)
         Logger.info('第{}件商品的数据跟踪成功...'.format(i + 1))
@@ -102,6 +120,9 @@ def main():
             deltaPrice = res[0] - priceList[i]
         else:
             Logger.info('第{}件商品的价格数据未发生改变'.format(i + 1))
+
+        c_.execute('insert into commodity values ("{}", "{}", "{}")'.format(TitleList[0], res[0], get_current_system_date()))
+
         if taobaoPriceList[i] != res[1]:
             Logger.info('第{}件商品的淘宝价格数据发生改变'.format(i + 1))
             c.execute('update product set TaoBaoPrice="{}", CreateTime="{}" where URL="{}"'.format(res[1], currentTime, url))
@@ -113,6 +134,8 @@ def main():
             changeCNT += 1
             emmitList.append((i, deltaPrice, deltaTaoBaoPrice))
     Logger.info('商品数据跟踪完毕！')
+
+    c_.close()
 
     if changeCNT != 0:
         c.execute('select * from product')

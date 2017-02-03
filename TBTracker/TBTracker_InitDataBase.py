@@ -18,13 +18,13 @@ def main():
     c = conn.cursor()
     try:
         c.execute('create table product (\
-            ProductName  text       not null, \
-            URL          text, \
-            Title        text       not null, \
-            ShopName     text       not null, \
-            Price        text       not null, \
-            TaoBaoPrice  text       not null, \
-            CreateTime   timestamp  not null)')
+            ProductName text      not null, \
+            URL         text      not null, \
+            Title       text      not null, \
+            ShopName    text      not null, \
+            Price       text      not null, \
+            TaoBaoPrice text      not null, \
+            CreateTime  timestamp not null)')
     except sqlite.OperationalError as e:
         print(e)
     finally:
@@ -34,8 +34,20 @@ def main():
     c = conn.cursor()
     try:
         c.execute('create table tag (\
-            TagName      text       not null, \
-            CreateTime   timestamp  not null)')
+            TagName    text      not null, \
+            CreateTime timestamp not null)')
+    except sqlite.OperationalError as e:
+        print(e)
+    finally:
+        c.close()
+
+    conn = sqlite.connect('TBTracker_DB/TBTrackerRoutineSpider.db')
+    c = conn.cursor()
+    try:
+        c.execute('create table commodity (\
+            Description text      not null, \
+            Price       text      not null,\
+            CreateTime  timestamp not null)')
     except sqlite.OperationalError as e:
         print(e)
     finally:

@@ -49,10 +49,8 @@ def generate_date_list(start, end):
     date_list = []
     current_date = start_date
     while current_date != end_date:
-        # date_list.append("%04d-%02d-%02d" % (current_date.year, current_date.month, current_date.day))
         date_list.append(current_date)
         current_date += datetime.timedelta(1)
-    # date_list.append("%04d-%02d-%02d" % (current_date.year, current_date.month, current_date.day))
     date_list.append(current_date)
     return date_list
 
