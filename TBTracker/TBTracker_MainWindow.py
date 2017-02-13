@@ -546,26 +546,30 @@ class TBTrackerMainWindow(QWidget):
             messageDialog.warning(self, "消息提示对话框", "请先填写商品标识!")
 
     def update_data(self):
-        for j in range(self.returnCNT):
-            flag = self.taobaoDataTable.item(j * 6 + 1, 3).checkState()
-            if flag == 2:
-                conn = sqlite.connect('TBTracker_DB/TBTracker.db')
-                c = conn.cursor()
-                c.execute('insert into product values ("{}", "{}", "{}", "{}", "{}", "{}", "{}")'.format(
-                    self.productIDLineEdit.text(),
-                    self.URLList[j],
-                    self.taobaoDataTable.item(j * 6, 1).text(),
-                    self.taobaoDataTable.item(j * 6 + 1, 2).text(),
-                    self.taobaoDataTable.item(j * 6 + 3, 2).text(),
-                    self.taobaoDataTable.item(j * 6 + 4, 2).text(), 
-                    get_current_system_time()))
-                conn.commit()
-                c.close()
-        messageDialog = MessageDialog()
-        messageDialog.information(self, "消息提示对话框", "数据成功入库!") 
+        try:
+            for j in range(self.returnCNT):
+                flag = self.taobaoDataTable.item(j * 6 + 1, 3).checkState()
+                if flag == 2:
+                    conn = sqlite.connect('TBTracker_DB/TBTracker.db')
+                    c = conn.cursor()
+                    c.execute('insert into product values ("{}", "{}", "{}", "{}", "{}", "{}", "{}")'.format(
+                        self.productIDLineEdit.text(),
+                        self.URLList[j],
+                        self.taobaoDataTable.item(j * 6, 1).text(),
+                        self.taobaoDataTable.item(j * 6 + 1, 2).text(),
+                        self.taobaoDataTable.item(j * 6 + 3, 2).text(),
+                        self.taobaoDataTable.item(j * 6 + 4, 2).text(), 
+                        get_current_system_time()))
+                    conn.commit()
+                    c.close()
+            messageDialog = MessageDialog()
+            messageDialog.information(self, "消息提示对话框", "数据成功入库!") 
 
-        self.show_database()
-        self.plot_word_cloud()
+            self.show_database()
+            self.plot_word_cloud()
+        except AttributeError as e:
+            messageDialog = MessageDialog()
+            messageDialog.warning(self, "消息提示对话框", "未选择任何待导入的数据！") 
 
     def show_database(self):
         conn = sqlite.connect('TBTracker_DB/TBTracker.db')
@@ -626,18 +630,19 @@ class TBTrackerMainWindow(QWidget):
             wordFreq.append((tagQuery[0], c.fetchone()[0]))
         c.close()
 
-        wc = WordCloud(
-            font_path="TBTracker_Font/wqy-microhei.ttc",
-            width=520, 
-            height=280,
-            margin=10,
-            max_words=500,
-            background_color='white',
-            max_font_size=50
-        ).fit_words(wordFreq)
-        wc.to_file("TBTracker_Ui/WordCloud.png")
+        if len(wordFreq) != 0:
+            wc = WordCloud(
+                font_path="TBTracker_Font/wqy-microhei.ttc",
+                width=520, 
+                height=280,
+                margin=10,
+                max_words=500,
+                background_color='white',
+                max_font_size=50
+            ).fit_words(wordFreq)
+            wc.to_file("TBTracker_Ui/WordCloud.png")
 
-        self.wordCloudLabel.setPixmap(QPixmap.fromImage(QImage("TBTracker_Ui/WordCloud.png")))
+            self.wordCloudLabel.setPixmap(QPixmap.fromImage(QImage("TBTracker_Ui/WordCloud.png")))
 
     def plot_product_tree(self):
         conn = sqlite.connect('TBTracker_DB/TBTrackerTag.db')
