@@ -327,7 +327,16 @@ class TBTrackerMainWindow(QWidget):
                     if match_price != price:
                         taobao_price = match_price
                 except Exception as e:
-                    Logger.error(e)
+                    try:
+                        tm_promo_panel = WebDriverWait(driver, 10).until(
+                            EC.presence_of_element_located((By.CLASS_NAME, 'tm-promo-panel')))
+                        price = WebDriverWait(tm_promo_panel, 10).until(
+                            EC.presence_of_element_located((By.CLASS_NAME, 'tm-price'))).text.strip()
+                        driver.close()
+                        if match_price != price:
+                            taobao_price = match_price
+                    except Exception as e:
+                        Logger.error(e)
         except Exception as e:
             Logger.error(e)
             Logger.warn('第{0}家店铺的商品页面读取失败...'.format(i))
@@ -566,7 +575,6 @@ class TBTrackerMainWindow(QWidget):
             messageDialog.information(self, "消息提示对话框", "数据成功入库!") 
 
             self.show_database()
-            self.plot_word_cloud()
         except AttributeError as e:
             messageDialog = MessageDialog()
             messageDialog.warning(self, "消息提示对话框", "未选择任何待导入的数据！") 
@@ -613,7 +621,6 @@ class TBTrackerMainWindow(QWidget):
             messageDialog.warning(self, "消息提示对话框", "无效操作!")
         else:
             self.show_database()
-            self.plot_word_cloud()
 
     def plot_word_cloud(self):
         conn = sqlite.connect('TBTracker_DB/TBTrackerTag.db')

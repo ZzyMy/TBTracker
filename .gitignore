@@ -93,3 +93,4 @@ ghostdriver.log
 # Pycache
 __pycache__/
 
+.vscode/

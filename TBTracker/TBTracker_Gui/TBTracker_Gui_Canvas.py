@@ -42,7 +42,7 @@ class HistoryDataCanvas(BaseCanvas):
         self.axes.set_xticks([])
         self.axes.set_ylabel("价格数据/￥", fontproperties=FONT, fontsize=10)
         self.axes.set_yticks([100 * i for i in range(11)])
-        self.axes.hold(False)
+        # self.axes.hold(False)
         super(HistoryDataCanvas, self).__init__(figure=fig)
 
     def compute_initial_figure(self):
