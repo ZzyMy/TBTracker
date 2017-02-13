@@ -94,14 +94,3 @@ ghostdriver.log
 # Pycache
 __pycache__/
 
-# System log
-TBTracker_Log/
-
-# System DB
-TBTracker_DB/
-
-# System Temp
-TBTracker_Temp/
-
-# System Excel
-TBTracker_Excel/
