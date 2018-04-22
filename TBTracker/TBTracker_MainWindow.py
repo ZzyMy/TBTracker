@@ -1,4 +1,7 @@
 # -*- coding: utf-8 -*-
+import warnings
+warnings.filterwarnings('ignore')
+
 # ********************第三方相关模块导入********************
 import logging
 
@@ -34,7 +37,7 @@ from selenium.common.exceptions import *
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from wordcloud import WordCloud
+# from wordcloud import WordCloud
 # ********************PyQt5相关模块导入********************
 from PyQt5.QtCore import QEvent
 from PyQt5.QtCore import Qt
@@ -52,6 +55,7 @@ from PyQt5.QtWidgets import QHBoxLayout
 from PyQt5.QtWidgets import QHeaderView
 from PyQt5.QtWidgets import QLabel
 from PyQt5.QtWidgets import QLineEdit
+from PyQt5.QtWidgets import QPlainTextEdit
 from PyQt5.QtWidgets import QProgressBar
 from PyQt5.QtWidgets import QRadioButton
 from PyQt5.QtWidgets import QSlider
@@ -74,7 +78,7 @@ from TBTracker_Gui.TBTracker_Gui_Dialog import *
 @author  : Zhou Jian
 @email   : zhoujian@hust.edu.cn
 @version : V1.0
-@date    : 2017.01.24
+@date    : 2018.04.22
 '''
 
 class TBTrackerMainWindow(QWidget):
@@ -83,27 +87,22 @@ class TBTrackerMainWindow(QWidget):
         self.create_main_window()
 
     def create_main_window(self):
-        self.setWindowTitle("淘宝商品数据跟踪系统")
-        self.setWindowIcon(QIcon('TBTracker_Ui/python.png'))
+        self.setWindowTitle("商品数据追踪系统")
+        self.setWindowIcon(QIcon('TBTracker_Ui/Spider.ico'))
         self.width, self.height = get_current_screen_size()
         self.setMinimumSize(self.width, self.height)
         self.setMaximumSize(self.width, self.height)
         self.set_widgets()
         self.setLayout(self.layout)
 
+        self.show_product_id()
         self.show_database()
-        self.plot_word_cloud()
+        # self.plot_word_cloud()
         self.plot_product_tree()
 
     def set_widgets(self):
-        q_1_Font = QFont()
-        q_1_Font.setPointSize(16)
-
         labelFont = QFont()
         labelFont.setPointSize(12)
-
-        q_2_Font = QFont()
-        q_2_Font.setPointSize(12)
 
         self.table_1_Font = QFont()
         self.table_1_Font.setPointSize(10)
@@ -113,23 +112,16 @@ class TBTrackerMainWindow(QWidget):
         self.table_2_Font.setStyleName("Bold")
 
         self.headers = {'user-agent': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:50.0) Gecko/20100101 Firefox/50.0'}
-
-        # ****************************************
+        # *****************************************************************************************
         firstWidget = QWidget()
 
-        taobaoLabel = QLabel()
-        logImage = QImage("TBTracker_Ui/tb_log.webp").scaled(int(148 * 0.8), int(66 * 0.8))
-        taobaoLabel.setPixmap(QPixmap.fromImage(logImage))
         self.searchLineEdit = QLineEdit()
-        self.searchLineEdit.setFont(q_1_Font)
         searchButton = SearchButton()
-        searchButton.setFont(q_1_Font)
         searchButton.clicked.connect(self.call_spider)
 
         searchRegionLayout = QHBoxLayout()
         searchRegionLayout.setContentsMargins(240, 0, 240, 0)
         searchRegionLayout.setSpacing(20)
-        searchRegionLayout.addWidget(taobaoLabel)
         searchRegionLayout.addWidget(self.searchLineEdit)
         searchRegionLayout.addWidget(searchButton)
         
@@ -138,16 +130,23 @@ class TBTrackerMainWindow(QWidget):
         self.taobaoDataTable.verticalHeader().hide()
         self.taobaoDataTable.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
         self.taobaoDataTable.setEditTriggers(QAbstractItemView.NoEditTriggers)
+        self.productIDTable = QTableWidget(0, 1)
+        self.productIDTable.setHorizontalHeaderLabels(["已有商品标识"])
+        self.productIDTable.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.productIDTable.setSelectionMode(QAbstractItemView.NoSelection)
+        self.productIDTable.setEditTriggers(QAbstractItemView.NoEditTriggers)
+        tableRegionLayout = QHBoxLayout()
+        tableRegionLayout.addWidget(self.taobaoDataTable)
+        tableRegionLayout.addWidget(self.productIDTable)
+        tableRegionLayout.setStretchFactor(self.taobaoDataTable, 3)
+        tableRegionLayout.setStretchFactor(self.productIDTable, 1)
 
         self.progressBar = QProgressBar()
         
         self.productIDLineEdit = QLineEdit()
-        self.productIDLineEdit.setFont(q_2_Font)
         productIDSaveButton = SaveButton()
-        productIDSaveButton.setFont(q_2_Font)
         productIDSaveButton.clicked.connect(self.save_product_id)
         updateDataButton = UpdateButton()
-        updateDataButton.setFont(q_2_Font)
         updateDataButton.clicked.connect(self.update_data)
 
         dataOperateLayout = QHBoxLayout()
@@ -161,15 +160,14 @@ class TBTrackerMainWindow(QWidget):
         firstWidgetLayout = QVBoxLayout()
         firstWidgetLayout.setSpacing(10)
         firstWidgetLayout.addLayout(searchRegionLayout)
-        firstWidgetLayout.addWidget(self.taobaoDataTable)
+        firstWidgetLayout.addLayout(tableRegionLayout)
         firstWidgetLayout.addWidget(self.progressBar)
         firstWidgetLayout.addLayout(dataOperateLayout)
 
         firstWidget.setLayout(firstWidgetLayout)
-        # ****************************************
-
-        # ****************************************
+        # *****************************************************************************************
         secondWidget = QWidget()
+
         self.DBTable = QTableWidget(0, 6)
         self.DBTable.setHorizontalHeaderLabels(["商品标识", "标题", "店铺名", "价格", "淘宝价", "是否删除数据？"])
         self.DBTable.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
@@ -193,16 +191,8 @@ class TBTrackerMainWindow(QWidget):
         secondWidgetLayout.addLayout(DBOperateLayout)
 
         secondWidget.setLayout(secondWidgetLayout)
-        # ****************************************
-
-        # ****************************************
+        # *****************************************************************************************
         thirdWidget = QWidget()
-        
-        self.wordCloudLabel = QLabel()
-        self.wordCloudLabel.setAlignment(Qt.AlignCenter)
-        self.wordCloudLabel.setFrameStyle(QFrame.Panel | QFrame.Plain)
-        self.wordCloudLabel.setLineWidth(2)
-        self.wordCloudLabel.setPixmap(QPixmap.fromImage(QImage("TBTracker_Ui/WordCloud.png")))
 
         self.productTree = QTreeWidget()
         self.productTree.setColumnCount(2)
@@ -214,17 +204,19 @@ class TBTrackerMainWindow(QWidget):
 
         upLayout = QHBoxLayout()
         upLayout.setSpacing(20)
-        upLayout.addWidget(self.wordCloudLabel)
         upLayout.addLayout(productTreeLayout)
 
-        exportButton = ExportButton()
-        exportButton.clicked.connect(self.export_data)
         allSelectButton = AllSelectButton()
         allSelectButton.clicked.connect(self.select_all)
+        removeButton = DeleteButton()
+        removeButton.clicked.connect(self.remove_data)
+        exportButton = ExportButton()
+        exportButton.clicked.connect(self.export_data)
         dataExportLayout = QHBoxLayout()
         dataExportLayout.addStretch()
         dataExportLayout.setSpacing(20)
         dataExportLayout.addWidget(allSelectButton)
+        dataExportLayout.addWidget(removeButton)
         dataExportLayout.addWidget(exportButton)
 
         thirdWidgetLayout = QVBoxLayout()
@@ -234,9 +226,7 @@ class TBTrackerMainWindow(QWidget):
         thirdWidgetLayout.addLayout(dataExportLayout)
         
         thirdWidget.setLayout(thirdWidgetLayout)
-        # ****************************************
-
-        # ****************************************
+        # *****************************************************************************************
         fourthWidget = QWidget()
 
         self.historyDataCanvas = HistoryDataCanvas()
@@ -263,8 +253,7 @@ class TBTrackerMainWindow(QWidget):
         fourthWidgetLayout.addLayout(buttonLayout)
 
         fourthWidget.setLayout(fourthWidgetLayout)
-        # ****************************************
-
+        # *****************************************************************************************
         self.tabWidget = QTabWidget()
         self.tabWidget.addTab(firstWidget, "数据爬虫")
         self.tabWidget.addTab(secondWidget, "数据后台")
@@ -275,14 +264,8 @@ class TBTrackerMainWindow(QWidget):
         self.layout.setContentsMargins(50, 20, 50, 13)
         self.layout.addWidget(self.tabWidget)
 
-    # 类方法重载 -- 关闭窗口事件
     def closeEvent(self, event):
-        messageDialog = MessageDialog()
-        reply = messageDialog.question(self, "消息提示对话框", "您要退出系统吗?", messageDialog.Yes | messageDialog.No, messageDialog.No)
-        if reply == messageDialog.Yes:
-            event.accept()
-        else:
-            event.ignore()
+        pass
     
     @staticmethod
     def remove_pics():
@@ -572,12 +555,39 @@ class TBTrackerMainWindow(QWidget):
                     conn.commit()
                     c.close()
             messageDialog = MessageDialog()
-            messageDialog.information(self, "消息提示对话框", "数据成功入库!") 
+            messageDialog.information(self, "消息提示对话框", "        数据成功入库!        ") 
 
             self.show_database()
         except AttributeError as e:
             messageDialog = MessageDialog()
             messageDialog.warning(self, "消息提示对话框", "未选择任何待导入的数据！") 
+
+    def show_product_id(self):
+        conn_1 = sqlite.connect('TBTracker_DB/TBTrackerTag.db')
+        c_1 = conn_1.cursor()
+        conn_2 = sqlite.connect('TBTracker_DB/TBTracker.db')
+        c_2 = conn_2.cursor()
+
+        c_1.execute('select * from tag')
+        tagQueries = c_1.fetchall()
+        CNT = len(tagQueries)
+        _CNT = CNT
+
+        for j in range(CNT):
+            c_2.execute('select count(*) from product where ProductName="{}"'.format(tagQueries[j][0]))
+            cnt = c_2.fetchone()
+            if cnt[0] == 0:
+                c_1.execute('delete from tag where TagName="{}"'.format(tagQueries[j][0]))
+                conn_1.commit()
+                _CNT -= 1
+
+        CNT = _CNT
+        self.productIDTable.setRowCount(CNT)
+        for j in range(CNT):
+            self.productIDTable.setItem(j, 0, QTableWidgetItem(tagQueries[j][0]))
+
+        c_1.close()
+        c_2.close()
 
     def show_database(self):
         conn = sqlite.connect('TBTracker_DB/TBTracker.db')
@@ -618,38 +628,9 @@ class TBTrackerMainWindow(QWidget):
                 notDeleteCNT += 1
         if notDeleteCNT == self.DBCNT:
             messageDialog = MessageDialog()
-            messageDialog.warning(self, "消息提示对话框", "无效操作!")
+            messageDialog.warning(self, "消息提示对话框", "          无效操作!          ")
         else:
             self.show_database()
-
-    def plot_word_cloud(self):
-        conn = sqlite.connect('TBTracker_DB/TBTrackerTag.db')
-        c = conn.cursor()
-        c.execute('select * from tag')
-        tagQueries = c.fetchall()
-        c.close()
-
-        conn = sqlite.connect('TBTracker_DB/TBTracker.db')
-        c = conn.cursor()
-        wordFreq = []
-        for tagQuery in tagQueries:
-            c.execute('select count(*) from product where ProductName="{}"'.format(tagQuery[0]))
-            wordFreq.append((tagQuery[0], c.fetchone()[0]))
-        c.close()
-
-        if len(wordFreq) != 0:
-            wc = WordCloud(
-                font_path="TBTracker_Font/wqy-microhei.ttc",
-                width=520, 
-                height=280,
-                margin=10,
-                max_words=500,
-                background_color='white',
-                max_font_size=50
-            ).fit_words(wordFreq)
-            wc.to_file("TBTracker_Ui/WordCloud.png")
-
-            self.wordCloudLabel.setPixmap(QPixmap.fromImage(QImage("TBTracker_Ui/WordCloud.png")))
 
     def plot_product_tree(self):
         conn = sqlite.connect('TBTracker_DB/TBTrackerTag.db')
@@ -692,6 +673,26 @@ class TBTrackerMainWindow(QWidget):
                         it.value().setCheckState(0, Qt.Checked)
             it = it.__iadd__(1)
 
+    def remove_data(self):
+        conn = sqlite.connect('TBTracker_DB/TBTracker.db')
+        c = conn.cursor()
+
+        currentTopLevelItemIndex = 0
+        it = QTreeWidgetItemIterator(self.productTree)
+        while it.value():
+            if it.value() is self.productTree.topLevelItem(currentTopLevelItemIndex):
+                currentTopLevelItemIndex += 1
+            else:
+                if it.value().checkState(0) == Qt.Checked:
+                    c.execute('delete from product where ProductName="{}" and ShopName="{}"'.format(
+                        it.value().parent().text(0),
+                        it.value().text(0)))
+                    conn.commit()
+            it = it.__iadd__(1)
+        c.close()
+        
+        self.show_database()
+
     def export_data(self):
         mainDirectory = check_os()
         currentFileDialog = SaveFileDialog()
@@ -714,9 +715,10 @@ class TBTrackerMainWindow(QWidget):
                     queries = c.fetchall()
                     exportDataList += queries
             it = it.__iadd__(1)
+        c.close()
         
         excel = xlwt.Workbook()
-        sheet = excel.add_sheet('淘宝商品数据', cell_overwrite_ok=True)
+        sheet = excel.add_sheet('商品数据', cell_overwrite_ok=True)
         sheet.write(0, 0, "商品标识")
         sheet.write(0, 1, "URL")
         sheet.write(0, 2, "标题")
@@ -746,7 +748,7 @@ class TBTrackerMainWindow(QWidget):
         self.historyDataCanvas.axes.set_xlabel("时间轴", fontproperties=FONT, fontsize=10)
         # self.historyDataCanvas.axes.set_yticks([100 * i for i in range(11)])
         self.historyDataCanvas.axes.set_ylabel("价格数据/￥", fontproperties=FONT, fontsize=10)
-        self.historyDataCanvas.axes.set_title("淘宝商品历史数据图", fontproperties=FONT, fontsize=14)
+        self.historyDataCanvas.axes.set_title("商品历史数据图", fontproperties=FONT, fontsize=14)
         self.historyDataCanvas.draw()
 
     def manual_update(self):
@@ -765,24 +767,6 @@ class TBTrackerMainWindow(QWidget):
     def select_year(self):
         pass
     
-    # def init_config(self):
-    #     with open('config.yaml', 'r') as fd:
-    #         yamlFile = yaml.load(fd)
-    #         smtpServerEmail = yamlFile['SMTPServer']['Email']
-    #         smtpServerPassWord = yamlFile['SMTPServer']['PassWord']
-    #         destinationEmail = yamlFile['Destination']['Email']
-    #     self.configTextEdit.append('SMTPServer Email:\n{}\n'.format(smtpServerEmail))
-    #     self.configTextEdit.append('SMTPServer PassWord:\n{}\n'.format(smtpServerPassWord))
-    #     self.configTextEdit.append('Destination Email:\n{}'.format(destinationEmail))
-
-    # def change_configuration(self):
-    #     if self.configTextEdit.isReadOnly():
-    #         self.changeConfigButton.setText("确认配置")
-    #         self.configTextEdit.setReadOnly(False)
-    #     else:
-    #         self.changeConfigButton.setText("更改配置")
-    #         self.configTextEdit.setReadOnly(True)
-
     def eventFilter(self, source, event):
         if event.type() == QEvent.MouseButtonPress:
             pass
@@ -796,7 +780,7 @@ class TBTrackerAddDataWindow(QWidget):
 
     def create_main_window(self):
         self.setWindowTitle("添加数据")
-        self.setWindowIcon(QIcon('TBTracker_Ui/python.png'))
+        self.setWindowIcon(QIcon('TBTracker_Ui/Spider.ico'))
         self.setMinimumSize(500, 350)
         self.setMaximumSize(500, 350)
         self.set_widgets()
@@ -855,7 +839,7 @@ class TBTrackerSelectCommodityWindow(QWidget):
 
     def create_main_window(self):
         self.setWindowTitle("选择商品")
-        self.setWindowIcon(QIcon('TBTracker_Ui/python.png'))
+        self.setWindowIcon(QIcon('TBTracker_Ui/Spider.ico'))
         self.setMinimumSize(700, 350)
         self.setMaximumSize(700, 350)
         self.set_widgets()
@@ -914,7 +898,7 @@ class TBTrackerSelectMonthWindow(QWidget):
 
     def create_main_window(self):
         self.setWindowTitle("选择月份")
-        self.setWindowIcon(QIcon('TBTracker_Ui/python.png'))
+        self.setWindowIcon(QIcon('TBTracker_Ui/Spider.ico'))
         self.setMinimumSize(250, 100)
         self.setMaximumSize(250, 100)
         self.set_widgets()
@@ -956,7 +940,7 @@ class TBTrackerSelectYearWindow(QWidget):
 
     def create_main_window(self):
         self.setWindowTitle("选择年份")
-        self.setWindowIcon(QIcon('TBTracker_Ui/python.png'))
+        self.setWindowIcon(QIcon('TBTracker_Ui/Spider.ico'))
         self.setMinimumSize(250, 100)
         self.setMaximumSize(250, 100)
         self.set_widgets()

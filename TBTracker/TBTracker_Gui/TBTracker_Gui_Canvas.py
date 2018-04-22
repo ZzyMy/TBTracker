@@ -14,8 +14,8 @@ FONT = FontProperties(fname=(os.getcwd() + "/TBTracker_Font/wqy-microhei.ttc"), 
 '''
 @author  : Zhou Jian
 @email   : zhoujian@hust.edu.cn
-@version : V1.0
-@date    : 2017.01.26
+@version : V1.1
+@date    : 2018.04.22
 '''
 
 class BaseCanvas(FigureCanvas):

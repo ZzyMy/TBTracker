@@ -6,8 +6,8 @@ from PyQt5.QtWidgets import QPushButton
 '''
 @author  : Zhou Jian
 @email   : zhoujian@hust.edu.cn
-@version : V1.0
-@date    : 2017.01.24
+@version : V1.1
+@date    : 2018.04.22
 '''
 
 class BaseButton(QPushButton):
@@ -23,7 +23,7 @@ class SearchButton(BaseButton):
     搜素按钮，继承自基类按钮
     '''
     def __init__(self):
-        super(SearchButton, self).__init__(name="搜索")
+        super(SearchButton, self).__init__(name="商品搜索")
         self.function_init()
     
     # 功能绑定 - 

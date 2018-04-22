@@ -16,8 +16,8 @@ from TBTracker_MainWindow import (TBTrackerMainWindow,
 '''
 @author  : Zhou Jian
 @email   : zhoujian@hust.edu.cn
-@version : V1.0
-@date    : 2017.01.24
+@version : V1.1
+@date    : 2018.04.22
 '''
 
 MonthMap = {"一月份数据": "01", "二月份数据": "02", "三月份数据": "03", "四月份数据": "04",

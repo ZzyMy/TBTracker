@@ -5,8 +5,8 @@ import sys
 '''
 @author  : Zhou Jian
 @email   : zhoujian@hust.edu.cn
-@version : V1.0
-@date    : 2017.01.24
+@version : V1.1
+@date    : 2018.04.22
 '''
 
 def main():
@@ -55,7 +55,7 @@ def main():
 
     print("******************************************************************************")
     print("*                                                                            *")
-    print("********************* TBTracker DB Init Is Successful! ***********************")
+    print("********************* TBTracker_DB_Init is Successful! ***********************")
 
 if __name__ == '__main__':
     main()

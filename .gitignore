@@ -90,7 +90,11 @@ ENV/
 # PhantomJS log
 ghostdriver.log
 
+# Firefox log
+geckodriver.log
+
 # Pycache
 __pycache__/
 
+# VSCode settings
 .vscode/

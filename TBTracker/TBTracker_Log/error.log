@@ -1,0 +1,14 @@
+[2018-04-22 15:58:40,221][TBTracker][ERROR] File "TBTracker_MainWindow.py", line 339: Message: 
+Screenshot: available via screen
+
+[2018-04-22 16:01:08,200][TBTracker][ERROR] File "TBTracker_MainWindow.py", line 341: HTTPSConnectionPool(host='item.taobao.com', port=443): Read timed out. (read timeout=10)
+[2018-04-22 21:04:06,101][TBTracker][ERROR] File "TBTracker_MainWindow.py", line 322: Message: 
+Screenshot: available via screen
+
+[2018-04-22 21:05:46,075][TBTracker][ERROR] File "TBTracker_MainWindow.py", line 322: Message: 
+Screenshot: available via screen
+
+[2018-04-22 21:07:14,212][TBTracker][ERROR] File "TBTracker_MainWindow.py", line 324: HTTPSConnectionPool(host='item.taobao.com', port=443): Read timed out. (read timeout=10)
+[2018-04-22 21:12:28,026][TBTracker][ERROR] File "TBTracker_MainWindow.py", line 322: Message: 
+Screenshot: available via screen
+
