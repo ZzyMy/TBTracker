@@ -40,8 +40,8 @@ from TBTracker_AuxiliaryFunction import get_current_system_time, get_current_sys
 '''
 @author  : Zhou Jian
 @email   : zhoujian@hust.edu.cn
-@version : V1.0
-@date    : 2017.01.24
+@version : V1.1
+@date    : 2018.04.22
 '''
 
 HEADERS = {

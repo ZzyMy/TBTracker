@@ -1,8 +1,7 @@
 ## 淘宝商品数据追踪系统.
 ### 安装开发库和依赖库
-1. 安装轻量级浏览器--PhantomJS
+1. 安装轻量级浏览器--phantomjs  [链接: https://pan.baidu.com/s/12HCAumGqy5SVMZuLsi1wVg 密码: en4x]
 ```shell
-$ wget https://bitbucket.org/ariya/phantomjs/downloads/phantomjs-2.1.1-linux-x86_64.tar.bz2
 $ tar -zxvf phantomjs-2.1.1-linux-x86_64.tar.bz2 && sudo rm phantomjs-2.1.1-linux-x86_64.tar.bz2
 $ cd phantomjs-2.1.1-linux-x86_64/bin
 $ sudo mv phantomjs /usr/local/bin
@@ -15,7 +14,7 @@ $ sudo add-apt-repository ppa:fkrull/deadsnakes
 $ sudo apt-get update
 $ sudo apt-get install python3.5
 $ sudo rm /usr/bin/python3
-$ sudo ln -s /usr/bin/python3.5m /usr/bin/python
+$ sudo ln -s /usr/bin/python3.5m /usr/bin/python3
 ```
 
 3. 安装python开发工具
@@ -26,24 +25,57 @@ $ sudo apt-get install python3-pip
 $ sudo pip3 install --upgrade pip
 ```
 
-4. 安装相关开发库和依赖库
+4. 安装sip  [链接: https://pan.baidu.com/s/1txI1Y7fK_arnL0VAK_GlJA 密码: up5f]
+```shell
+$ tar -zxvf sip-4.19.8.tar.gz && sudo rm sip-4.19.8.tar.gz
+$ cd sip-4.19.8
+$ sudo python3 configure.py
+$ sudo make
+$ sudo make install
+```
+
+5. 安装PyQt5方案1  [链接: https://pan.baidu.com/s/1fRZHtphJME3y9X9vRDCqfA 密码: 27q3]
+```shell
+$ sudo apt-get install qt-sdk
+$ tar -zxvf PyQt5_gpl-5.10.1.tar.gz  && sudo rm PyQt5_gpl-5.10.1.tar.gz
+$ cd PyQt5_gpl-5.10.1
+$ sudo python3 configure.py --sip-incdir=/usr/include/python3.5
+$ sudo make -j4
+$ sudo make install
+```
+
+6. 安装PyQt5方案2  [该种方法支持中文输入，建议选择方案2]
+```shell
+$ sudo apt install fcitx-frontend-qt5 fcitx-libs-qt fcitx-libs-qt5
+$ sudo cp /usr/lib/x86_64-linux-gnu/qt5/plugins/platforminputcontexts/libfcitxplatforminputcontextplugin.so /usr/local/lib/python3.5/dist-packages/PyQt5/Qt/plugins/platforminputcontexts/
+$ sudo chmod +x /usr/local/lib/python3.5/dist-packages/PyQt5/Qt/plugins/platforminputcontexts/libfcitxplatforminputcontextplugin.so
+$ sudo pip3 install PyQt5
+```
+
+7. 安装相关依赖库
 ```shell
 $ sudo apt-get install sqlite3 
 $ sudo apt-get install libpng-dev
 $ sudo pip3 install bs4
 $ sudo pip3 install selenium 
 $ sudo pip3 install xlwt 
-$ sudo pip3 install pyyaml 
-$ sudo pip3 install PyQt5 
-$ sudo pip3 install numpy
-$ sudo pip3 install matplotlib
+$ sudo pip3 install pyyaml  
+$ sudo pip3 install --upgrade pillow
 ```
 
-5. 可选安装
+8. 安装matplotlib  [链接: https://pan.baidu.com/s/1rZb2xqdECJ_uQevb2YQ3Wg 密码: u8nh]
 ```shell
-$ wget http://download.savannah.gnu.org/releases/freetype/freetype-2.7.1.tar.gz
-$ tar -zxvf freetype-2.7.1.tar.gz && sudo rm freetype-2.7.1.tar.gz
-$ cd freetype-2.7.1
+$ tar -zxvf matplotlib-master.zip && sudo rm matplotlib-master.zip
+$ cd matplotlib-master
+$ sudo pip3 install --upgrade setuptools
+$ sudo python3 setup.py build
+$ sudo python3 setup.py install
+```
+
+9. 可选安装  [链接: https://pan.baidu.com/s/12daywXnyJHko5203X-lFXg 密码: mx32]
+```shell
+$ tar -zxvf freetype-2.9.tar.bz2 && sudo rm freetype-2.9.tar.bz2
+$ cd freetype-2.9
 $ ./configure
 $ make
 $ sudo make install
