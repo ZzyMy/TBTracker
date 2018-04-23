@@ -94,5 +94,21 @@ $ sudo python3 TBTracker_InitDataBase.py
 ```shell
 $ sudo python3 TBTracker_Main.py
 ```
-
+### 运行定时采集程序
+开启一个终端，执行以下命令
+```shell
+$ sudo apt-get install redis-server
+$ sudo pip3 install celery 
+$ sudo pip3 install redis
+$ redis-server
+```
+另开一个终端，执行以下命令（注意在TBTracker_Tasks.py所在目录下执行）
+```
+$ celery -A TBTracker_Tasks worker --loglevel=info
+```
+再开一个终端，执行以下命令（注意在TBTracker_Tasks.py所在目录下执行）
+```shell
+$ celery -A TBTracker_Tasks beat
+```
+系统会在每天凌晨三点钟执行采集任务。
 ## JUST ENJOY IT!!!

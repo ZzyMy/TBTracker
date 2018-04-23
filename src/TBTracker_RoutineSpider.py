@@ -278,5 +278,8 @@ def main():
 
     c.close()
 
+def run():
+    main()
+
 if __name__ == '__main__':
     main()

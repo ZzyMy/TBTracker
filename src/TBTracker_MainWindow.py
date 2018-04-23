@@ -273,10 +273,10 @@ class TBTrackerMainWindow(QWidget):
         fourthWidget.setLayout(fourthWidgetLayout)
         # *****************************************************************************************
         self.tabWidget = QTabWidget()
-        self.tabWidget.addTab(firstWidget, "数据抓取")
-        self.tabWidget.addTab(secondWidget, "数据后端")
+        self.tabWidget.addTab(firstWidget, "数据爬虫")
+        self.tabWidget.addTab(secondWidget, "数据后台")
         self.tabWidget.addTab(thirdWidget, "数据导出")
-        self.tabWidget.addTab(fourthWidget, "数据追踪")
+        self.tabWidget.addTab(fourthWidget, "数据跟踪")
 
         self.layout = QVBoxLayout()
         self.layout.setContentsMargins(50, 20, 50, 13)
