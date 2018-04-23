@@ -74,6 +74,7 @@ class OverLoadClassMethod(object):
                 selectedFlag = True
                 break
         if selectedFlag:
+            myTBTrackerMainWindow.plot_history_data([], [])
             myTBTrackerSelectCommodityWindow.close()
         else:
             messageDialog = MessageDialog()
@@ -120,7 +121,7 @@ if __name__ == '__main__':
     overLoad = OverLoadClassMethod()
 
     myTBTrackerMainWindow.add_data = overLoad.tb_tracker_add_data_window
-    myTBTrackerMainWindow.addButton.clicked.connect(myTBTrackerMainWindow.add_data)
+    myTBTrackerMainWindow.insertButton.clicked.connect(myTBTrackerMainWindow.add_data)
     myTBTrackerAddDataWindow.confirm = overLoad.tb_tracker_add_data_window_confirm
     myTBTrackerAddDataWindow.confirmButton.clicked.connect(myTBTrackerAddDataWindow.confirm)
     myTBTrackerMainWindow.select_commodity = overLoad.tb_tracker_select_commodity_window

@@ -30,33 +30,49 @@ class SearchButton(BaseButton):
     def function_init(self):
         pass
 
-class SaveButton(BaseButton):
+
+class AddButton(BaseButton):
     '''
-    保存按钮，继承自基类按钮
+    添加标签按钮，继承自基类按钮
     '''
     def __init__(self):
-        super(SaveButton, self).__init__(name="标识入库")
+        super(AddButton, self).__init__(name="添加标签")
         self.function_init()
     
     # 功能绑定 - 
     def function_init(self):
         pass
 
-class UpdateButton(BaseButton):
+
+class AttachButton(BaseButton):
     '''
-    更新按钮，继承自基类按钮
+    标注标签按钮，继承自基类按钮
     '''
     def __init__(self):
-        super(UpdateButton, self).__init__(name="导入数据")
+        super(AttachButton, self).__init__(name="标注标签")
         self.function_init()
     
     # 功能绑定 - 
     def function_init(self):
         pass
+
+
+class ImportButton(BaseButton):
+    '''
+    导入数据按钮，继承自基类按钮
+    '''
+    def __init__(self):
+        super(ImportButton, self).__init__(name="导入数据")
+        self.function_init()
+    
+    # 功能绑定 - 
+    def function_init(self):
+        pass
+
 
 class ExportButton(BaseButton):
     '''
-    导出按钮，继承自基类按钮
+    导出数据按钮，继承自基类按钮
     '''
     def __init__(self):
         super(ExportButton, self).__init__(name="导出数据")
@@ -66,17 +82,19 @@ class ExportButton(BaseButton):
     def function_init(self):
         pass
 
-class AddButton(BaseButton):
+
+class InsertButton(BaseButton):
     '''
-    增加数据按钮，继承自基类按钮
+    添加数据按钮，继承自基类按钮
     '''
     def __init__(self):
-        super(AddButton, self).__init__(name="增加数据")
+        super(InsertButton, self).__init__(name="添加数据")
         self.function_init()
     
     # 功能绑定 - 
     def function_init(self):
         pass
+
 
 class DeleteButton(BaseButton):
     '''
@@ -90,6 +108,7 @@ class DeleteButton(BaseButton):
     def function_init(self):
         pass
 
+
 class ConfirmButton(BaseButton):
     '''
     确定按钮，继承自基类按钮
@@ -101,6 +120,7 @@ class ConfirmButton(BaseButton):
     # 功能绑定 - 
     def function_init(self):
         pass
+
 
 class CancelButton(BaseButton):
     '''
@@ -114,6 +134,7 @@ class CancelButton(BaseButton):
     def function_init(self):
         pass
 
+
 class AllSelectButton(BaseButton):
     '''
     全选按钮，继承自基类按钮
@@ -125,6 +146,7 @@ class AllSelectButton(BaseButton):
     # 功能绑定 - 
     def function_init(self):
         pass
+
 
 class ChangeConfigButton(BaseButton):
     '''
@@ -138,6 +160,7 @@ class ChangeConfigButton(BaseButton):
     def function_init(self):
         pass
 
+
 class ManualUpdateButton(BaseButton):
     '''
     手动更新按钮，继承自基类按钮
@@ -149,6 +172,7 @@ class ManualUpdateButton(BaseButton):
     # 功能绑定 - 
     def function_init(self):
         pass
+
 
 class SelectCommodityButton(BaseButton):
     '''
@@ -162,6 +186,7 @@ class SelectCommodityButton(BaseButton):
     def function_init(self):
         pass
 
+
 class MonthlyDataButton(BaseButton):
     '''
     月份数据按钮，继承自基类按钮
@@ -173,6 +198,7 @@ class MonthlyDataButton(BaseButton):
     # 功能绑定 - 
     def function_init(self):
         pass
+
 
 class YearlyDataButton(BaseButton):
     '''

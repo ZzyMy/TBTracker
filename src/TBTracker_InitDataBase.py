@@ -47,6 +47,7 @@ def main():
         c.execute('create table commodity (\
             Description text      not null, \
             Price       text      not null,\
+            TaoBaoPrice text      not null,\
             CreateTime  timestamp not null)')
     except sqlite.OperationalError as e:
         print(e)

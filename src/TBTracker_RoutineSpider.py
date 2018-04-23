@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
-import logging
+import warnings
+warnings.filterwarnings('ignore')
 
+import logging
 Logger = logging.getLogger("TBTrackerSpider")
 Logger.setLevel(logging.DEBUG)
 InfoHandler = logging.FileHandler("TBTracker_Log/spider_info.log")
@@ -31,9 +33,22 @@ from email.utils import parseaddr, formataddr
 from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.common.exceptions import *
+from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
+USER_AGENT = 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:50.0) Gecko/20100101 Firefox/50.0'
+DCAP = dict(DesiredCapabilities.PHANTOMJS)
+DCAP["phantomjs.page.settings.userAgent"] = USER_AGENT
+DCAP["phantomjs.page.settings.loadImages"] = False
+
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+
+DRIVER = webdriver.PhantomJS(desired_capabilities=DCAP, service_args=[
+    '--load-images=no',  # 禁止加载图片
+    '--disk-cache=yes',  # 开启浏览器缓存
+    '--ignore-ssl-errors=true',  # 忽略HTTPS错误
+    '--ssl-protocol=TLSv1'])
+DRIVER.set_window_size(1280, 1024)
 
 from TBTracker_AuxiliaryFunction import get_current_system_time, get_current_system_date
 
@@ -44,46 +59,75 @@ from TBTracker_AuxiliaryFunction import get_current_system_time, get_current_sys
 @date    : 2018.04.22
 '''
 
-HEADERS = {
-    'user-agent': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:50.0) Gecko/20100101 Firefox/50.0',
-}
 
-def find_out_real_price(shop_url):
-    price, taobao_price = '', ''
+def find_out_real_price(i, shop_url):
+    price, taobao_price = '无', '无'
     try:
-        driver = webdriver.PhantomJS()
-        driver.set_window_size(800, 400)
-        driver.get(shop_url)
-        tm_price_panel = WebDriverWait(driver, 10).until(
-            EC.presence_of_element_located((By.ID, 'J_StrPriceModBox')))
-        price = WebDriverWait(tm_price_panel, 10).until(
-            EC.presence_of_element_located((By.CLASS_NAME, 'tb-rmb-num'))).text.strip()
+        DRIVER.get(shop_url)
         try:
-            tm_promo_panel = WebDriverWait(driver, 10).until(
-                EC.presence_of_element_located((By.ID, 'J_PromoPrice')))
-            taobao_price = WebDriverWait(tm_promo_panel, 10).until(
-                EC.presence_of_element_located((By.CLASS_NAME, 'tb-rmb-num'))).text.strip()
-        except Exception as e:
-            taobao_price = '无'
-    except Exception as e:
-        try:
-            price = WebDriverWait(tm_price_panel, 10).until(
-                EC.presence_of_element_located((By.CLASS_NAME, 'tm-price'))).text.strip()
-            try:
-                tm_promo_panel = WebDriverWait(driver, 10).until(
-                    EC.presence_of_element_located((By.ID, 'J_PromoPrice')))
-                taobao_price = WebDriverWait(tm_promo_panel, 10).until(
-                    EC.presence_of_element_located((By.CLASS_NAME, 'tm-price'))).text.strip()
-            except Exception as e:
-                taobao_price = '无'
-        except Exception as e:
-            price = WebDriverWait(driver, 10).until(
+            price = WebDriverWait(DRIVER, 10).until(
                 EC.presence_of_element_located((By.CLASS_NAME, 'originPrice'))).text.lstrip("￥").strip()
-            taobao_price = WebDriverWait(driver, 10).until(
+        except Exception as e:
+            pass
+        try:
+            taobao_price = WebDriverWait(DRIVER, 10).until(
                 EC.presence_of_element_located((By.CLASS_NAME, 'J_actPrice'))).text.lstrip("￥").strip()
+        except Exception as e:
+            pass
+
+        if price == '无' and taobao_price == '无':
+            try:
+                J_StrPriceModBox = WebDriverWait(DRIVER, 10).until(
+                    EC.presence_of_element_located((By.ID, 'J_StrPriceModBox')))
+                try:
+                    price = WebDriverWait(J_StrPriceModBox, 10).until(
+                        EC.presence_of_element_located((By.CLASS_NAME, 'tb-rmb-num'))).text.strip()
+                except Exception as e:
+                    try:
+                        price = WebDriverWait(J_StrPriceModBox, 10).until(
+                            EC.presence_of_element_located((By.CLASS_NAME, 'tm-price'))).text.strip()
+                    except Exception as e:
+                        pass
+            except Exception as e:
+                pass
+            try:
+                J_PromoPrice = WebDriverWait(DRIVER, 10).until(
+                    EC.presence_of_element_located((By.ID, 'J_PromoPrice')))
+                try:
+                    taobao_price = WebDriverWait(J_PromoPrice, 10).until(
+                        EC.presence_of_element_located((By.CLASS_NAME, 'tb-rmb-num'))).text.strip()
+                except Exception as e:
+                    try:
+                        taobao_price = WebDriverWait(J_PromoPrice, 10).until(
+                            EC.presence_of_element_located((By.CLASS_NAME, 'tm-price'))).text.strip()
+                    except Exception as e:
+                        pass
+            except Exception as e:
+                pass
+            
+            if price == '无' and taobao_price == '无':
+                try:
+                    tm_price_panel = WebDriverWait(DRIVER, 10).until(
+                        EC.presence_of_element_located((By.CLASS_NAME, 'tm-price-panel')))
+                    price = WebDriverWait(tm_price_panel, 10).until(
+                        EC.presence_of_element_located((By.CLASS_NAME, 'tm-price'))).text.strip()
+                except Exception as e:
+                    pass
+                try:
+                    tm_promo_panel = WebDriverWait(DRIVER, 10).until(
+                        EC.presence_of_element_located((By.CLASS_NAME, 'tm-promo-panel')))
+                    taobao_price = WebDriverWait(tm_promo_panel, 10).until(
+                        EC.presence_of_element_located((By.CLASS_NAME, 'tm-price'))).text.strip()
+                except Exception as e:
+                    pass
+    except Exception as e:
+        Logger.error(e)
+        Logger.warn('第{}件商品的数据追踪失败'.format(i))
+        Logger.warn(shop_url)
     finally:
-        driver.close()
-    return (price, taobao_price)
+        if price != '无' or taobao_price != '无':
+            Logger.info('第{}件商品的数据追踪成功'.format(i))
+        return (price, taobao_price)
 
 def _format_addr(s):
     name, addr = parseaddr(s)
@@ -101,41 +145,45 @@ def main():
     priceList = [query[0] for query in c.fetchall()]
     c.execute('select TaobaoPrice from product')
     taobaoPriceList = [query[0] for query in c.fetchall()]
-    Logger.info('总共有{}件商品的数据需要跟踪...'.format(len(URLList)))
+    Logger.info('')
+    Logger.info('总共有{}件商品的数据需要追踪'.format(len(URLList)))
     changeCNT = 0
     emmitList = []
 
     conn_ = sqlite.connect('TBTracker_DB/TBTrackerRoutineSpider.db')
     c_ = conn_.cursor()
     for i, url in enumerate(URLList):
-        res = find_out_real_price(url)
-        Logger.info('第{}件商品的数据跟踪成功...'.format(i + 1))
+        res = find_out_real_price(i + 1, url)
+
         deltaPrice = 0.0
         deltaTaoBaoPrice = 0.0
         currentTime = get_current_system_time()
-        if priceList[i] != res[0]:
+
+        if res[0] != '无' and priceList[i] != '' and priceList[i] != res[0]:
+            print(res[0], priceList[i])
             Logger.info('第{}件商品的价格数据发生改变'.format(i + 1))
             c.execute('update product set Price="{}", CreateTime="{}" where URL="{}"'.format(res[0], currentTime, url))
             conn.commit()
-            deltaPrice = res[0] - priceList[i]
+            deltaPrice = float(res[0]) - float(priceList[i])
         else:
             Logger.info('第{}件商品的价格数据未发生改变'.format(i + 1))
-
-        c_.execute('insert into commodity values ("{}", "{}", "{}")'.format(TitleList[0], res[0], get_current_system_date()))
-
-        if taobaoPriceList[i] != res[1]:
+        if res[1] != '无' and taobaoPriceList[i] != '' and taobaoPriceList[i] != res[1]:
+            print(res[1], taobaoPriceList[i])
             Logger.info('第{}件商品的淘宝价格数据发生改变'.format(i + 1))
             c.execute('update product set TaoBaoPrice="{}", CreateTime="{}" where URL="{}"'.format(res[1], currentTime, url))
             conn.commit()
-            deltaTaoBaoPrice = res[1] - taobaoPriceList[i]
+            deltaTaoBaoPrice = float(res[1]) - float(taobaoPriceList[i])
         else:
             Logger.info('第{}件商品的淘宝价格数据未发生改变'.format(i + 1))
+        c_.execute('insert into commodity values ("{}", "{}", "{}", "{}")'.format(TitleList[0], res[0], res[1], get_current_system_date()))
+        conn_.commit()
+        
         if deltaPrice != 0.0 or deltaTaoBaoPrice != 0.0:
             changeCNT += 1
             emmitList.append((i, deltaPrice, deltaTaoBaoPrice))
-    Logger.info('商品数据跟踪完毕！')
-
+    DRIVER.quit()
     c_.close()
+    Logger.info('商品数据追踪完毕！')
 
     if changeCNT != 0:
         c.execute('select * from product')
@@ -214,9 +262,9 @@ def main():
             encoders.encode_base64(mimeExcel)
             msg.attach(mimeExcel)
 
-        with open('TBTracker_Excel/python.png', 'rb') as f:
-            mimeImage = MIMEBase('image', 'png', filename='python.png')
-            mimeImage.add_header('Content-Disposition', 'attachment', filename='python.png')
+        with open('TBTracker_Excel/Python.png', 'rb') as f:
+            mimeImage = MIMEBase('image', 'png', filename='Python.png')
+            mimeImage.add_header('Content-Disposition', 'attachment', filename='Python.png')
             mimeImage.add_header('Content-ID', '<1>')
             mimeImage.add_header('X-Attachment-Id', '1')
             mimeImage.set_payload(f.read())
