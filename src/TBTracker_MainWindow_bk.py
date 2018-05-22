@@ -45,12 +45,12 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 
-DRIVER = webdriver.PhantomJS(desired_capabilities=DCAP, service_args=[
-    '--load-images=no',  # 禁止加载图片
-    '--disk-cache=yes',  # 开启浏览器缓存
-    '--ignore-ssl-errors=true',  # 忽略HTTPS错误
-    '--ssl-protocol=TLSv1'])
-DRIVER.set_window_size(1280, 1024)
+# DRIVER = webdriver.PhantomJS(desired_capabilities=DCAP, service_args=[
+#     '--load-images=no',  # 禁止加载图片
+#     '--disk-cache=yes',  # 开启浏览器缓存
+#     '--ignore-ssl-errors=true',  # 忽略HTTPS错误
+#     '--ssl-protocol=TLSv1'])
+# DRIVER.set_window_size(1280, 1024)
 # ********************PyQt5相关模块导入********************
 from PyQt5.QtCore import QEvent
 from PyQt5.QtCore import Qt
@@ -189,7 +189,7 @@ class TBTrackerMainWindow(QWidget):
         self.DBTable.setHorizontalHeaderLabels(["商品标识", "标题", "店铺名", "价格", "淘宝价", "是否删除数据？"])
         self.DBTable.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
         self.DBTable.setSelectionMode(QAbstractItemView.NoSelection)
-        self.DBTable.setEditTriggers(QAbstractItemView.NoEditTriggers)
+        # self.DBTable.setEditTriggers(QAbstractItemView.NoEditTriggers)
 
         self.insertButton = InsertButton()
         self.insertButton.clicked.connect(self.add_data)
@@ -223,8 +223,6 @@ class TBTrackerMainWindow(QWidget):
         upLayout.setSpacing(20)
         upLayout.addLayout(productTreeLayout)
 
-        globalSelectButton = GlobalSelectButton()
-        globalSelectButton.clicked.connect(self.select_global)
         allSelectButton = AllSelectButton()
         allSelectButton.clicked.connect(self.select_all)
         removeButton = DeleteButton()
@@ -234,7 +232,6 @@ class TBTrackerMainWindow(QWidget):
         dataExportLayout = QHBoxLayout()
         dataExportLayout.addStretch()
         dataExportLayout.setSpacing(20)
-        dataExportLayout.addWidget(globalSelectButton)
         dataExportLayout.addWidget(allSelectButton)
         dataExportLayout.addWidget(removeButton)
         dataExportLayout.addWidget(exportButton)
@@ -300,23 +297,23 @@ class TBTrackerMainWindow(QWidget):
     def find_out_real_price(self, i, shop_url, match_price):
         price, taobao_price = '', ''
         try:
-            DRIVER.get(shop_url)
+            self.webDriver.get(shop_url)
             Logger.info("第{0}家店铺的商品页面读取成功".format(i))
 
             try:
-                price = WebDriverWait(DRIVER, 10).until(
+                price = WebDriverWait(self.webDriver, 10).until(
                     EC.presence_of_element_located((By.CLASS_NAME, 'originPrice'))).text.lstrip("￥").strip()
             except Exception as e:
                 pass
             try:
-                taobao_price = WebDriverWait(DRIVER, 10).until(
+                taobao_price = WebDriverWait(self.webDriver, 10).until(
                     EC.presence_of_element_located((By.CLASS_NAME, 'J_actPrice'))).text.lstrip("￥").strip()
             except Exception as e:
                 pass
             
             if price == '' and taobao_price == '':
                 try:
-                    J_StrPriceModBox = WebDriverWait(DRIVER, 10).until(
+                    J_StrPriceModBox = WebDriverWait(self.webDriver, 10).until(
                         EC.presence_of_element_located((By.ID, 'J_StrPriceModBox')))
                     try:
                         price = WebDriverWait(J_StrPriceModBox, 10).until(
@@ -330,7 +327,7 @@ class TBTrackerMainWindow(QWidget):
                 except Exception as e:
                     pass
                 try:
-                    J_PromoPrice = WebDriverWait(DRIVER, 10).until(
+                    J_PromoPrice = WebDriverWait(self.webDriver, 10).until(
                         EC.presence_of_element_located((By.ID, 'J_PromoPrice')))
                     try:
                         taobao_price = WebDriverWait(J_PromoPrice, 10).until(
@@ -346,14 +343,14 @@ class TBTrackerMainWindow(QWidget):
                 
                 if price == '' and taobao_price == '':
                     try:
-                        tm_price_panel = WebDriverWait(DRIVER, 10).until(
+                        tm_price_panel = WebDriverWait(self.webDriver, 10).until(
                             EC.presence_of_element_located((By.CLASS_NAME, 'tm-price-panel')))
                         price = WebDriverWait(tm_price_panel, 10).until(
                             EC.presence_of_element_located((By.CLASS_NAME, 'tm-price'))).text.strip()
                     except Exception as e:
                         pass
                     try:
-                        tm_promo_panel = WebDriverWait(DRIVER, 10).until(
+                        tm_promo_panel = WebDriverWait(self.webDriver, 10).until(
                             EC.presence_of_element_located((By.CLASS_NAME, 'tm-promo-panel')))
                         taobao_price = WebDriverWait(tm_promo_panel, 10).until(
                             EC.presence_of_element_located((By.CLASS_NAME, 'tm-price'))).text.strip()
@@ -370,8 +367,7 @@ class TBTrackerMainWindow(QWidget):
                 taobao_price = price
             elif price == '' and taobao_price == '':
                 price = taobao_price = match_price
-        
-        return price, taobao_price
+            return price, taobao_price
 
     def call_spider(self):
         searchWord = self.searchLineEdit.text().strip()
@@ -399,31 +395,31 @@ class TBTrackerMainWindow(QWidget):
                         ''')
             self.remove_pics()
             try:
-                webDriver = webdriver.PhantomJS(desired_capabilities=DCAP, service_args=[
+                self.webDriver = webdriver.PhantomJS(desired_capabilities=DCAP, service_args=[
                     '--load-images=no',  # 禁止加载图片
                     '--disk-cache=yes',  # 开启浏览器缓存
                     '--ignore-ssl-errors=true',  # 忽略HTTPS错误
                     '--ssl-protocol=TLSv1'])
-                webDriver.set_window_size(1280, 1024)
+                self.webDriver.set_window_size(1280, 1024)
                 try:
                     Logger.info("模拟登录淘宝网")
-                    webDriver.get("https://www.taobao.com/")
+                    self.webDriver.get("https://www.taobao.com/")
                     try:
-                        search_combobox = WebDriverWait(webDriver, 10).until(
+                        search_combobox = WebDriverWait(self.webDriver, 10).until(
                             EC.presence_of_element_located((By.CLASS_NAME, 'search-combobox-input-wrap')))
                         search_input = WebDriverWait(search_combobox, 10).until(
                             EC.presence_of_element_located((By.ID, 'q')))
                         # 发送搜索词
                         search_input.send_keys(searchWord.strip())
 
-                        search_button_wrap = WebDriverWait(webDriver, 10).until(
+                        search_button_wrap = WebDriverWait(self.webDriver, 10).until(
                             EC.presence_of_element_located((By.CLASS_NAME, 'search-button')))
                         search_button = WebDriverWait(search_button_wrap, 10).until(
                             EC.presence_of_element_located((By.CLASS_NAME, 'btn-search')))
                         search_button.click()
                         try:
                             Logger.info('搜索成功，正在返回搜索结果')
-                            mainsrp_itemlist = WebDriverWait(webDriver, 10).until(
+                            mainsrp_itemlist = WebDriverWait(self.webDriver, 10).until(
                                 EC.presence_of_element_located((By.ID, 'mainsrp-itemlist')))
                             m_itemlist = WebDriverWait(mainsrp_itemlist, 10).until(
                                 EC.presence_of_element_located((By.CLASS_NAME, 'm-itemlist')))
@@ -455,6 +451,10 @@ class TBTrackerMainWindow(QWidget):
                             checkItem = [QTableWidgetItem() for _ in range(self.returnCNT)]
                             self.URLList = []
 
+                            urls = ['' for _ in range(len(allItems))]
+                            item_match_price = ['' for _ in range(len(allItems))]
+                            item_price = ['' for _ in range(len(allItems))] 
+                            item_taobao_price = ['' for _ in range(len(allItems))]
                             for (j, item) in enumerate(allItems):
                                 try:
                                     # 抓取商品图
@@ -467,7 +467,16 @@ class TBTrackerMainWindow(QWidget):
                                     itemPic_data_src = itemPic.get_attribute('data-src')
                                     if not itemPic_data_src.startswith("https:"):
                                         itemPic_data_src = "https:" + itemPic_data_src
+                                    
                                     itemPic_alt = itemPic.get_attribute('alt').strip()
+                                    item_title = itemPic_alt
+                                    Logger.info('第{0}家店铺的商品价格和链接爬取完毕'.format(j + 1))
+                                    self.taobaoDataTable.setSpan(j * 6, 1, 1, 2)
+                                    titleItem[j].setData(Qt.DisplayRole, QVariant(item_title))
+                                    titleItem[j].setFont(self.table_1_Font)
+                                    titleItem[j].setTextAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
+                                    self.taobaoDataTable.setItem(j * 6, 1, titleItem[j])
+
                                     if itemPic_id == '':
                                         random_serial = ''
                                         for _ in range(12):
@@ -501,7 +510,7 @@ class TBTrackerMainWindow(QWidget):
                                     item_price_and_link = WebDriverWait(row_row_2, 10).until(
                                         EC.presence_of_element_located((By.TAG_NAME, 'a'))
                                     )
-                                    item_match_price = item_price_and_link.get_attribute('trace-price')
+                                    item_match_price[j] = item_price_and_link.get_attribute('trace-price')
                                     item_link = item_price_and_link.get_attribute('href')
                                     if not item_link.startswith("https:"):
                                         item_link = "https:" + item_link
@@ -510,29 +519,7 @@ class TBTrackerMainWindow(QWidget):
                                     status_code = requests.get(item_link).status_code
                                     Logger.info(status_code)
                                     if status_code == 200:
-                                        item_title = itemPic_alt
-                                        # 淘宝价格有时候会为空，暂时性的解决方案
-                                        item_price, item_taobao_price = self.find_out_real_price(j + 1, item_link, item_match_price)
-                                        if item_taobao_price == '':
-                                            item_taobao_price = item_price
-                                        Logger.info('第{0}家店铺的商品价格和链接爬取完毕'.format(j + 1))
-                                        self.taobaoDataTable.setSpan(j * 6, 1, 1, 2)
-                                        titleItem[j].setData(Qt.DisplayRole, QVariant(item_title))
-                                        titleItem[j].setFont(self.table_1_Font)
-                                        titleItem[j].setTextAlignment(Qt.AlignHCenter | Qt.AlignVCenter)
-                                        self.taobaoDataTable.setItem(j * 6, 1, titleItem[j])
-
-                                        priceItem[j].setFont(self.table_2_Font)
-                                        priceItem[j].setTextAlignment(Qt.AlignRight | Qt.AlignVCenter)
-                                        self.taobaoDataTable.setItem(j * 6 + 3, 1, priceItem[j])
-                                        priceValueItem[j].setData(Qt.DisplayRole, QVariant(item_price))
-                                        self.taobaoDataTable.setItem(j * 6 + 3, 2, priceValueItem[j])
-
-                                        tbPriceItem[j].setFont(self.table_2_Font)
-                                        tbPriceItem[j].setTextAlignment(Qt.AlignRight | Qt.AlignVCenter)
-                                        self.taobaoDataTable.setItem(j * 6 + 4, 1, tbPriceItem[j])
-                                        tbPriceValueItem[j].setData(Qt.DisplayRole, QVariant(item_taobao_price))
-                                        self.taobaoDataTable.setItem(j * 6 + 4, 2, tbPriceValueItem[j])
+                                        urls[j] = item_link
                                     else:
                                         Logger.warn('第{0}家店铺的商品价格和链接爬取失败'.format(j + 1))
                                     # 抓取商品交易量
@@ -580,22 +567,34 @@ class TBTrackerMainWindow(QWidget):
                                 except Exception as e:
                                     Logger.error(e)
                             
-                            webDriver.quit()
-                            DRIVER.quit()
+                            # 开启并发爬取
+                            # item_price, item_taobao_price = self.find_out_real_price(j + 1, item_link, item_match_price)
+
+                            for j in range(len(urls)):
+                                priceItem[j].setFont(self.table_2_Font)
+                                priceItem[j].setTextAlignment(Qt.AlignRight | Qt.AlignVCenter)
+                                self.taobaoDataTable.setItem(j * 6 + 3, 1, priceItem[j])
+                                priceValueItem[j].setData(Qt.DisplayRole, QVariant(item_price[j]))
+                                self.taobaoDataTable.setItem(j * 6 + 3, 2, priceValueItem[j])
+
+                                tbPriceItem[j].setFont(self.table_2_Font)
+                                tbPriceItem[j].setTextAlignment(Qt.AlignRight | Qt.AlignVCenter)
+                                self.taobaoDataTable.setItem(j * 6 + 4, 1, tbPriceItem[j])
+                                tbPriceValueItem[j].setData(Qt.DisplayRole, QVariant(item_taobao_price[j]))
+                                self.taobaoDataTable.setItem(j * 6 + 4, 2, tbPriceValueItem[j])
+
+                            self.webDriver.quit()
                             Logger.info("数据爬取完毕")
                             messageDialog = MessageDialog()
                             messageDialog.information(self, "消息提示", "数据爬取完毕!")
                         except NoSuchElementException as e:
-                            webDriver.quit()
-                            DRIVER.quit()
+                            self.webDriver.quit()
                             Logger.error(e)
                     except NoSuchElementException as e:
-                        webDriver.quit()
-                        DRIVER.quit()
+                        self.webDriver.quit()
                         Logger.error(e)
                 except TimeoutException as e:
-                    webDriver.quit()
-                    DRIVER.quit()
+                    self.webDriver.quit()
                     Logger.error(e)
             except WebDriverException as e:
                 Logger.error(e)
@@ -751,18 +750,6 @@ class TBTrackerMainWindow(QWidget):
             self.productTree.addTopLevelItem(roots[i])
 
         c.close()
-
-    def select_global(self):
-        currentTopLevelItemIndex = 0
-        it = QTreeWidgetItemIterator(self.productTree)
-        while it.value():
-            if it.value() is self.productTree.topLevelItem(currentTopLevelItemIndex):
-                currentTopLevelItemIndex += 1
-                it.value().setCheckState(0, Qt.Checked)
-                for _ in range(it.value().childCount()):
-                    it = it.__iadd__(1)
-                    it.value().setCheckState(0, Qt.Checked)
-            it = it.__iadd__(1)
 
     def select_all(self):
         currentTopLevelItemIndex = 0

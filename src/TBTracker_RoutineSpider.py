@@ -61,7 +61,7 @@ from TBTracker_AuxiliaryFunction import get_current_system_time, get_current_sys
 
 
 def find_out_real_price(i, shop_url):
-    price, taobao_price = '无', '无'
+    price, taobao_price = '', ''
     try:
         DRIVER.get(shop_url)
         try:
@@ -75,7 +75,7 @@ def find_out_real_price(i, shop_url):
         except Exception as e:
             pass
 
-        if price == '无' and taobao_price == '无':
+        if price == '' and taobao_price == '':
             try:
                 J_StrPriceModBox = WebDriverWait(DRIVER, 10).until(
                     EC.presence_of_element_located((By.ID, 'J_StrPriceModBox')))
@@ -105,7 +105,7 @@ def find_out_real_price(i, shop_url):
             except Exception as e:
                 pass
             
-            if price == '无' and taobao_price == '无':
+            if price == '' and taobao_price == '':
                 try:
                     tm_price_panel = WebDriverWait(DRIVER, 10).until(
                         EC.presence_of_element_located((By.CLASS_NAME, 'tm-price-panel')))
@@ -125,7 +125,7 @@ def find_out_real_price(i, shop_url):
         Logger.warn('第{}件商品的数据追踪失败'.format(i))
         Logger.warn(shop_url)
     finally:
-        if price != '无' or taobao_price != '无':
+        if price != '' or taobao_price != '':
             Logger.info('第{}件商品的数据追踪成功'.format(i))
         return (price, taobao_price)
 
@@ -159,7 +159,7 @@ def main():
         deltaTaoBaoPrice = 0.0
         currentTime = get_current_system_time()
 
-        if res[0] != '无' and priceList[i] != '' and priceList[i] != res[0]:
+        if res[0] != '' and priceList[i] != '' and priceList[i] != res[0]:
             print(res[0], priceList[i])
             Logger.info('第{}件商品的价格数据发生改变'.format(i + 1))
             c.execute('update product set Price="{}", CreateTime="{}" where URL="{}"'.format(res[0], currentTime, url))
@@ -167,7 +167,7 @@ def main():
             deltaPrice = float(res[0]) - float(priceList[i])
         else:
             Logger.info('第{}件商品的价格数据未发生改变'.format(i + 1))
-        if res[1] != '无' and taobaoPriceList[i] != '' and taobaoPriceList[i] != res[1]:
+        if res[1] != '' and taobaoPriceList[i] != '' and taobaoPriceList[i] != res[1]:
             print(res[1], taobaoPriceList[i])
             Logger.info('第{}件商品的淘宝价格数据发生改变'.format(i + 1))
             c.execute('update product set TaoBaoPrice="{}", CreateTime="{}" where URL="{}"'.format(res[1], currentTime, url))

@@ -29,8 +29,8 @@ def return_os():
 
 # 获取当前屏幕尺寸
 def get_current_screen_size():
-    width = int(1366 * 0.9)
-    height = int(768 * 0.9)
+    width = int(1366 * 0.95)
+    height = int(768 * 0.95)
     return (width, height)
 
 # 获取当前系统时间
