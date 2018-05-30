@@ -125,7 +125,7 @@ def find_out_real_price(i, shop_url):
         Logger.warn('第{}件商品的数据追踪失败'.format(i))
         Logger.warn(shop_url)
     finally:
-        if price != '' or taobao_price != '':
+        if price != '':
             Logger.info('第{}件商品的数据追踪成功'.format(i))
         return (price, taobao_price)
 
@@ -174,7 +174,14 @@ def main():
             conn.commit()
             deltaTaoBaoPrice = float(res[1]) - float(taobaoPriceList[i])
         else:
-            Logger.info('第{}件商品的淘宝价格数据未发生改变'.format(i + 1))
+            if res[1] == '' and taobaoPriceList[i] == '':
+                print(res[0], priceList[i])
+                Logger.info('第{}件商品的淘宝价格数据发生改变'.format(i + 1))
+                c.execute('update product set TaoBaoPrice="{}", CreateTime="{}" where URL="{}"'.format(res[0], currentTime, url))
+                conn.commit()
+                deltaTaoBaoPrice = float(res[0]) - float(priceList[i])
+            else:
+                Logger.info('第{}件商品的淘宝价格数据未发生改变'.format(i + 1))
         c_.execute('insert into commodity values ("{}", "{}", "{}", "{}")'.format(TitleList[0], res[0], res[1], get_current_system_date()))
         conn_.commit()
         
